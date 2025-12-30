@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function GoodsHubPage() {
   return (
@@ -16,7 +16,6 @@ export default function GoodsHubPage() {
             아티스트별 굿즈를 만나보세요
           </p>
         </div>
-
         {/* Artist Shop Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {/* Miruru Shop - Active */}
@@ -29,9 +28,7 @@ export default function GoodsHubPage() {
                 <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/50 flex items-center justify-center">
                   <span className="text-4xl">🌸</span>
                 </div>
-                <h2 className="text-3xl font-bold text-text-primary">
-                  미루루
-                </h2>
+                <h2 className="text-3xl font-bold text-text-primary">미루루</h2>
               </div>
             </div>
             <div className="p-6">
@@ -51,15 +48,11 @@ export default function GoodsHubPage() {
                 <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/50 flex items-center justify-center">
                   <span className="text-4xl">💧</span>
                 </div>
-                <h2 className="text-3xl font-bold text-text-primary">
-                  Drips
-                </h2>
+                <h2 className="text-3xl font-bold text-text-primary">Drips</h2>
               </div>
             </div>
             <div className="p-6">
-              <p className="text-text-secondary mb-4">
-                준비 중입니다
-              </p>
+              <p className="text-text-secondary mb-4">준비 중입니다</p>
               <Button intent="secondary" fullWidth disabled>
                 Coming Soon
               </Button>

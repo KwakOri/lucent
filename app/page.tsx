@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Twitter } from 'lucide-react';
+import { useProjects } from '@/hooks';
 
-// Hero slides data
+// Hero slides data (static)
 const HERO_SLIDES = [
   {
     id: 'slogan',
@@ -24,31 +25,27 @@ const HERO_SLIDES = [
   },
 ];
 
-// Projects data
-const PROJECTS = [
-  {
-    id: '0th',
-    name: '0th Project',
-    artist: '미루루',
-    description: '포근하고 다정한 동물의 숲',
+// Project display config
+const PROJECT_DISPLAY_CONFIG: Record<string, {
+  emoji?: string;
+  color?: string;
+  artist?: string;
+}> = {
+  '0th': {
     emoji: '🌸',
     color: 'from-[#E3F2FD] to-[#A8D5E2]',
-    link: '/projects/0th',
+    artist: '미루루',
   },
-  {
-    id: '1st',
-    name: '1st Project',
-    artist: 'Drips',
-    description: '준비 중입니다',
+  '1st': {
     emoji: '💧',
     color: 'from-neutral-100 to-neutral-200',
-    link: '/projects/1st',
-    disabled: true,
+    artist: 'Drips',
   },
-];
+};
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { data: projects } = useProjects();
 
   // Auto slide
   useEffect(() => {
@@ -144,34 +141,45 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {PROJECTS.map((project) => (
-              <Link
-                key={project.id}
-                href={project.link}
-                className={`block bg-white rounded-2xl border-2 border-neutral-200 overflow-hidden hover:shadow-xl transition-all duration-300 ${
-                  !project.disabled ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed pointer-events-none'
-                }`}
-              >
-                <div className={`aspect-video bg-gradient-to-br ${project.color} flex items-center justify-center`}>
-                  <div className="text-center">
-                    <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center">
-                      <span className="text-6xl">{project.emoji}</span>
+            {projects && projects.length > 0 ? (
+              projects.map((project) => {
+                const displayConfig = PROJECT_DISPLAY_CONFIG[project.slug] || {};
+                const isDisabled = !project.is_active;
+
+                return (
+                  <Link
+                    key={project.id}
+                    href={`/projects/${project.slug}`}
+                    className={`block bg-white rounded-2xl border-2 border-neutral-200 overflow-hidden hover:shadow-xl transition-all duration-300 ${
+                      !isDisabled ? 'hover:scale-105' : 'opacity-60 cursor-not-allowed pointer-events-none'
+                    }`}
+                  >
+                    <div className={`aspect-video bg-gradient-to-br ${displayConfig.color || 'from-neutral-100 to-neutral-200'} flex items-center justify-center`}>
+                      <div className="text-center">
+                        <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-white/50 backdrop-blur-sm flex items-center justify-center">
+                          <span className="text-6xl">{displayConfig.emoji || '📦'}</span>
+                        </div>
+                        <h3 className="text-3xl font-bold text-text-primary">
+                          {project.name}
+                        </h3>
+                      </div>
                     </div>
-                    <h3 className="text-3xl font-bold text-text-primary">
-                      {project.name}
-                    </h3>
-                  </div>
-                </div>
-                <div className="p-6">
-                  <p className="text-xl font-semibold text-text-primary mb-2">
-                    {project.artist}
-                  </p>
-                  <p className="text-text-secondary">
-                    {project.description}
-                  </p>
-                </div>
-              </Link>
-            ))}
+                    <div className="p-6">
+                      <p className="text-xl font-semibold text-text-primary mb-2">
+                        {displayConfig.artist || project.name}
+                      </p>
+                      <p className="text-text-secondary">
+                        {project.description || '프로젝트 설명'}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })
+            ) : (
+              <div className="col-span-2 text-center py-12">
+                <p className="text-text-secondary">프로젝트를 불러오는 중...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

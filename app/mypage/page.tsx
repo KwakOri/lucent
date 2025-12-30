@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -8,9 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package } from 'lucide-react';
+import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct } from '@/hooks';
+import type { Enums } from '@/types';
 
 // Order status types
-type OrderStatus = 'PENDING' | 'PAID' | 'MAKING' | 'SHIPPING' | 'DONE';
+type OrderStatus = Enums<'order_status'>;
+type ProductType = Enums<'product_type'>;
 
 // Order status config
 const ORDER_STATUS_CONFIG: Record<
@@ -24,115 +27,43 @@ const ORDER_STATUS_CONFIG: Record<
   DONE: { label: '배송완료', variant: 'default' },
 };
 
-// Temporary mock data
-const MOCK_ORDERS = [
-  {
-    id: '1',
-    orderNumber: 'ORD-20250101-001',
-    createdAt: '2025-01-01T10:00:00Z',
-    status: 'PAID' as OrderStatus,
-    totalPrice: 10000,
-    items: [
-      {
-        id: '1',
-        productId: '1',
-        productName: '미루루 일상 보이스팩',
-        productType: 'VOICE_PACK' as const,
-        quantity: 1,
-        price: 5000,
-        digitalFileUrl: '/downloads/voice-pack-1.zip',
-      },
-      {
-        id: '2',
-        productId: '2',
-        productName: '미루루 감정 보이스팩',
-        productType: 'VOICE_PACK' as const,
-        quantity: 1,
-        price: 5000,
-        digitalFileUrl: '/downloads/voice-pack-2.zip',
-      },
-    ],
-  },
-  {
-    id: '2',
-    orderNumber: 'ORD-20250102-002',
-    createdAt: '2025-01-02T14:00:00Z',
-    status: 'PENDING' as OrderStatus,
-    totalPrice: 15000,
-    items: [
-      {
-        id: '3',
-        productId: '3',
-        productName: '미루루 아크릴 스탠드',
-        productType: 'PHYSICAL_GOODS' as const,
-        quantity: 1,
-        price: 15000,
-      },
-    ],
-    shippingAddress: '서울시 강남구 테헤란로 123',
-  },
-];
-
 export default function MyPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ email: string } | null>(null);
-  const [orders, setOrders] = useState<typeof MOCK_ORDERS>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // API Hooks
+  const { session, user, isLoading: isSessionLoading, isAuthenticated } = useSession();
+  const { data: ordersData, isLoading: isOrdersLoading, error: ordersError } = useMyOrders();
+  const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { mutate: download, isPending: isDownloading } = useDownloadDigitalProduct();
+
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // TODO: Check authentication
-    const loadUserAndOrders = async () => {
-      try {
-        setIsLoading(true);
+    if (!isSessionLoading && !isAuthenticated) {
+      router.push('/login?redirect=/mypage');
+    }
+  }, [isSessionLoading, isAuthenticated, router]);
 
-        // TODO: Replace with actual API calls
-        // const userResponse = await fetch('/api/auth/me');
-        // const ordersResponse = await fetch('/api/orders');
+  const handleLogout = () => {
+    logout();
+  };
 
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        setUser({ email: 'user@example.com' });
-        setOrders(MOCK_ORDERS);
-      } catch (err) {
-        setError('데이터를 불러오는 중 오류가 발생했습니다');
-      } finally {
-        setIsLoading(false);
+  const handleDownload = (orderId: string, itemId: string, productName: string) => {
+    download(
+      { orderId, itemId },
+      {
+        onSuccess: () => {
+          alert(`${productName} 다운로드가 시작되었습니다`);
+        },
+        onError: (error) => {
+          console.error('Download failed:', error);
+          alert('다운로드 중 오류가 발생했습니다');
+        },
       }
-    };
-
-    loadUserAndOrders();
-  }, []);
-
-  const handleLogout = async () => {
-    try {
-      // TODO: Replace with actual API call
-      // await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
-    } catch (err) {
-      console.error('Logout failed:', err);
-    }
+    );
   };
 
-  const handleDownload = async (orderId: string, itemId: string, productName: string) => {
-    try {
-      // TODO: Replace with actual API call
-      // const response = await fetch(`/api/orders/${orderId}/download/${itemId}`);
-      // const blob = await response.blob();
-      // const url = window.URL.createObjectURL(blob);
-      // const a = document.createElement('a');
-      // a.href = url;
-      // a.download = `${productName}.zip`;
-      // a.click();
-
-      console.log('Download:', orderId, itemId, productName);
-      alert(`${productName} 다운로드가 시작되었습니다`);
-    } catch (err) {
-      console.error('Download failed:', err);
-      alert('다운로드 중 오류가 발생했습니다');
-    }
-  };
+  const isLoading = isSessionLoading || isOrdersLoading;
+  const orders = ordersData?.data || [];
 
   if (isLoading) {
     return (
@@ -142,10 +73,13 @@ export default function MyPage() {
     );
   }
 
-  if (error) {
+  if (ordersError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <EmptyState title="오류가 발생했습니다" description={error} />
+        <EmptyState
+          title="오류가 발생했습니다"
+          description={ordersError instanceof Error ? ordersError.message : '데이터를 불러오는 중 오류가 발생했습니다'}
+        />
       </div>
     );
   }
@@ -167,9 +101,10 @@ export default function MyPage() {
             intent="secondary"
             size="md"
             onClick={handleLogout}
+            disabled={isLoggingOut}
           >
             <LogOut className="w-4 h-4" />
-            로그아웃
+            {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
           </Button>
         </div>
 
@@ -204,10 +139,10 @@ export default function MyPage() {
                   <div className="flex items-center justify-between mb-4 pb-4 border-b border-neutral-200">
                     <div>
                       <p className="text-sm text-text-secondary mb-1">
-                        주문번호: {order.orderNumber}
+                        주문번호: {order.order_number}
                       </p>
                       <p className="text-sm text-text-muted">
-                        {new Date(order.createdAt).toLocaleDateString('ko-KR', {
+                        {new Date(order.created_at).toLocaleDateString('ko-KR', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -228,23 +163,23 @@ export default function MyPage() {
                       >
                         <div className="flex-1">
                           <p className="text-base font-medium text-text-primary">
-                            {item.productName}
+                            {item.product_name}
                           </p>
                           <p className="text-sm text-text-secondary">
-                            {item.quantity}개 × {item.price.toLocaleString()}원
+                            {item.quantity}개 × {item.price_snapshot.toLocaleString()}원
                           </p>
                         </div>
 
                         {/* Download Button for Digital Products */}
-                        {item.productType === 'VOICE_PACK' &&
-                          order.status !== 'PENDING' &&
-                          item.digitalFileUrl && (
+                        {item.product_type === 'VOICE_PACK' &&
+                          order.status !== 'PENDING' && (
                             <Button
                               intent="primary"
                               size="sm"
                               onClick={() =>
-                                handleDownload(order.id, item.id, item.productName)
+                                handleDownload(order.id, item.id, item.product_name)
                               }
+                              disabled={isDownloading}
                             >
                               <Download className="w-4 h-4" />
                               다운로드
@@ -257,14 +192,14 @@ export default function MyPage() {
                   {/* Order Footer */}
                   <div className="pt-4 border-t border-neutral-200 flex items-center justify-between">
                     <div>
-                      {order.shippingAddress && (
+                      {order.shipping_address && (
                         <p className="text-sm text-text-secondary">
-                          배송지: {order.shippingAddress}
+                          배송지: {order.shipping_address}
                         </p>
                       )}
                     </div>
                     <p className="text-xl font-bold text-primary-700">
-                      총 {order.totalPrice.toLocaleString()}원
+                      총 {order.total_price.toLocaleString()}원
                     </p>
                   </div>
                 </div>
@@ -274,8 +209,8 @@ export default function MyPage() {
         </section>
 
         {/* Digital Products Section */}
-        {orders.some((order) =>
-          order.items.some((item) => item.productType === 'VOICE_PACK')
+        {orders.some((order:any) =>
+          order.items?.some((item:any) => item.product_type === 'VOICE_PACK')
         ) && (
           <section>
             <h2 className="text-2xl font-bold text-text-primary mb-6">
@@ -285,36 +220,35 @@ export default function MyPage() {
             <div className="bg-white rounded-xl border border-neutral-200 p-6">
               <div className="space-y-4">
                 {orders
-                  .filter((order) => order.status !== 'PENDING')
-                  .flatMap((order) =>
+                  .filter((order:any) => order.status !== 'PENDING')
+                  .flatMap((order:any) =>
                     order.items
-                      .filter((item) => item.productType === 'VOICE_PACK')
-                      .map((item) => (
+                      ?.filter((item:any) => item.product_type === 'VOICE_PACK')
+                      .map((item:any) => (
                         <div
                           key={`${order.id}-${item.id}`}
                           className="flex items-center justify-between p-4 rounded-lg bg-neutral-50"
                         >
                           <div>
                             <p className="font-medium text-text-primary">
-                              {item.productName}
+                              {item.product_name}
                             </p>
                             <p className="text-sm text-text-secondary">
                               구매일:{' '}
-                              {new Date(order.createdAt).toLocaleDateString('ko-KR')}
+                              {new Date(order.created_at).toLocaleDateString('ko-KR')}
                             </p>
                           </div>
-                          {item.digitalFileUrl && (
-                            <Button
-                              intent="primary"
-                              size="sm"
-                              onClick={() =>
-                                handleDownload(order.id, item.id, item.productName)
-                              }
-                            >
-                              <Download className="w-4 h-4" />
-                              다운로드
-                            </Button>
-                          )}
+                          <Button
+                            intent="primary"
+                            size="sm"
+                            onClick={() =>
+                              handleDownload(order.id, item.id, item.product_name)
+                            }
+                            disabled={isDownloading}
+                          >
+                            <Download className="w-4 h-4" />
+                            다운로드
+                          </Button>
                         </div>
                       ))
                   )}

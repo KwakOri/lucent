@@ -1,85 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Play, Pause, ShoppingCart } from 'lucide-react';
-
-// Temporary mock data - will be replaced with API calls
-const MOCK_VOICE_PACKS = [
-  {
-    id: '1',
-    title: '미루루 일상 보이스팩',
-    description: '일상에서 사용할 수 있는 다양한 보이스',
-    price: 5000,
-    thumbnail: '/images/voice-pack-1.jpg',
-    sampleAudioUrl: '/audio/sample-1.mp3',
-    isActive: true,
-  },
-  {
-    id: '2',
-    title: '미루루 감정 보이스팩',
-    description: '다양한 감정을 담은 보이스',
-    price: 5000,
-    thumbnail: '/images/voice-pack-2.jpg',
-    sampleAudioUrl: '/audio/sample-2.mp3',
-    isActive: true,
-  },
-];
-
-const MOCK_PHYSICAL_GOODS = [
-  {
-    id: '1',
-    name: '미루루 아크릴 스탠드',
-    description: '귀여운 미루루 아크릴 스탠드',
-    price: 15000,
-    images: ['/images/goods-1.jpg'],
-    isActive: true,
-  },
-];
+import { useMiruruProducts, usePlaySample } from '@/hooks';
 
 export default function MiruruGoodsShopPage() {
   const router = useRouter();
-  const [voicePacks, setVoicePacks] = useState<typeof MOCK_VOICE_PACKS>([]);
-  const [physicalGoods, setPhysicalGoods] = useState<typeof MOCK_PHYSICAL_GOODS>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { voicePacks, physicalGoods, isLoading, error } = useMiruruProducts();
+  const { mutate: playSample, isPending: isPlaying } = usePlaySample();
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Simulate API call
-    const loadProducts = async () => {
-      try {
-        setIsLoading(true);
-        // TODO: Replace with actual API call
-        // const response = await fetch('/api/products?artistId=miruru');
-        // const data = await response.json();
-
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        setVoicePacks(MOCK_VOICE_PACKS);
-        setPhysicalGoods(MOCK_PHYSICAL_GOODS);
-      } catch (err) {
-        setError('상품을 불러오는 중 오류가 발생했습니다');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProducts();
-  }, []);
-
-  const handlePlaySample = (audioUrl: string, packId: string) => {
-    // TODO: Implement audio player
-    if (currentPlaying === packId) {
+  const handlePlaySample = (productId: string) => {
+    if (currentPlaying === productId) {
       setCurrentPlaying(null);
+      // TODO: Stop current audio
     } else {
-      setCurrentPlaying(packId);
-      console.log('Play sample:', audioUrl);
+      playSample(productId, {
+        onSuccess: () => {
+          setCurrentPlaying(productId);
+        },
+        onError: (error) => {
+          console.error('샘플 재생 실패:', error);
+          alert('샘플 재생에 실패했습니다. 다시 시도해주세요.');
+        },
+      });
     }
   };
 
@@ -102,7 +50,7 @@ export default function MiruruGoodsShopPage() {
       <div className="min-h-screen flex items-center justify-center bg-neutral-50">
         <EmptyState
           title="오류가 발생했습니다"
-          description={error}
+          description={error instanceof Error ? error.message : '상품을 불러오는 중 오류가 발생했습니다'}
         />
       </div>
     );
@@ -163,36 +111,39 @@ export default function MiruruGoodsShopPage() {
                   {/* Pack Info */}
                   <div className="p-6">
                     <h3 className="text-xl font-bold text-text-primary mb-2">
-                      {pack.title}
+                      {pack.name}
                     </h3>
                     <p className="text-sm text-text-secondary mb-4">
-                      {pack.description}
+                      {pack.description || '미루루의 보이스팩'}
                     </p>
                     <p className="text-2xl font-bold text-primary-700 mb-4">
                       {pack.price.toLocaleString()}원
                     </p>
 
                     {/* Sample Play Button */}
-                    <div className="flex gap-3 mb-4">
-                      <Button
-                        intent="secondary"
-                        size="md"
-                        fullWidth
-                        onClick={() => handlePlaySample(pack.sampleAudioUrl, pack.id)}
-                      >
-                        {currentPlaying === pack.id ? (
-                          <>
-                            <Pause className="w-4 h-4" />
-                            일시정지
-                          </>
-                        ) : (
-                          <>
-                            <Play className="w-4 h-4" />
-                            샘플 듣기
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    {pack.sample_audio_url && (
+                      <div className="flex gap-3 mb-4">
+                        <Button
+                          intent="secondary"
+                          size="md"
+                          fullWidth
+                          onClick={() => handlePlaySample(pack.id)}
+                          disabled={isPlaying}
+                        >
+                          {currentPlaying === pack.id ? (
+                            <>
+                              <Pause className="w-4 h-4" />
+                              일시정지
+                            </>
+                          ) : (
+                            <>
+                              <Play className="w-4 h-4" />
+                              샘플 듣기
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
 
                     {/* Purchase Button */}
                     <Button
@@ -247,11 +198,16 @@ export default function MiruruGoodsShopPage() {
                       {goods.name}
                     </h3>
                     <p className="text-sm text-text-secondary mb-4">
-                      {goods.description}
+                      {goods.description || '미루루 굿즈'}
                     </p>
                     <p className="text-2xl font-bold text-primary-700 mb-4">
                       {goods.price.toLocaleString()}원
                     </p>
+
+                    {/* Stock Info */}
+                    {goods.stock !== null && goods.stock <= 0 && (
+                      <p className="text-sm text-red-600 mb-2">품절</p>
+                    )}
 
                     {/* Purchase Button */}
                     <Button
@@ -259,9 +215,10 @@ export default function MiruruGoodsShopPage() {
                       size="md"
                       fullWidth
                       onClick={() => handlePurchase(goods.id, 'physical')}
+                      disabled={goods.stock !== null && goods.stock <= 0}
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      구매하기
+                      {goods.stock !== null && goods.stock <= 0 ? '품절' : '구매하기'}
                     </Button>
                   </div>
                 </div>
