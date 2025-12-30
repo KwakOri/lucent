@@ -16,7 +16,7 @@ import type { UpdateOrderStatusRequest } from '@/types/api';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -25,9 +25,10 @@ export async function GET(
     }
 
     const adminCheck = await isAdmin();
+    const { id } = await params;
 
     const order = await OrderService.getOrderById(
-      params.id,
+      id,
       adminCheck ? undefined : user.id // 관리자가 아니면 본인 확인
     );
 
@@ -42,7 +43,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -62,8 +63,9 @@ export async function PATCH(
       return handleApiError(new Error('변경할 상태를 지정해주세요'));
     }
 
+    const { id } = await params;
     const order = await OrderService.updateOrderStatus(
-      params.id,
+      id,
       status,
       user.id
     );

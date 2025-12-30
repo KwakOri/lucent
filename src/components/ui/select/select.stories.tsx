@@ -50,6 +50,9 @@ export const Disabled: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    options: deliveryOptions,
+  },
   render: () => (
     <div className="flex flex-col gap-4 max-w-md">
       <div className="flex flex-col gap-2">

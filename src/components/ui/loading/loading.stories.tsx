@@ -56,6 +56,7 @@ export const FullScreen: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {},
   render: () => (
     <div className="flex flex-col gap-8 p-8">
       <div className="flex flex-col gap-4">

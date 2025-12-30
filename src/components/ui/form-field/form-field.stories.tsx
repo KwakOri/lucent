@@ -78,6 +78,10 @@ export const WithCheckbox: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    label: "이름",
+    children: null,
+  },
   render: () => (
     <div className="flex flex-col gap-6 max-w-md">
       <FormField label="이름" htmlFor="name" required>

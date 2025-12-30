@@ -76,6 +76,35 @@ export class ProductService {
 }
 ```
 
+### 1-3. Next.js 15 동적 라우트 중요 사항
+
+**⚠️ Next.js 15부터 `params`는 Promise입니다!**
+
+동적 라우트(`[id]`, `[slug]` 등)를 사용할 때 **반드시** `await`를 사용해야 합니다:
+
+```ts
+// ❌ 잘못된 예시 (Next.js 14 이하)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const product = await ProductService.getProductById(params.id);
+  // ...
+}
+
+// ✅ 올바른 예시 (Next.js 15)
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }  // Promise 타입
+) {
+  const { id } = await params;  // await 필수!
+  const product = await ProductService.getProductById(id);
+  // ...
+}
+```
+
+**자세한 내용**: [`/specs/api/server/routes/index.md`](/specs/api/server/routes/index.md#4-동적-라우트)
+
 ---
 
 ## 2. 타입 정의 및 스키마 참조
@@ -628,6 +657,7 @@ return NextResponse.json({ status: "success" });
 
 - [ ] **스펙 문서** 작성 또는 확인 (`/specs/api/server/routes/`, `/specs/api/server/services/`)
 - [ ] **3-Layer 아키텍처** 준수 (API Route → Service Layer → DB)
+- [ ] **동적 라우트 params Promise 처리** (`{ params: Promise<{ id: string }> }` 타입, `await params` 필수) ⭐ **Next.js 15 필수**
 - [ ] **타입 정의** 사용 (`/types/database.ts` 참조)
 - [ ] **통일된 응답 형식** 적용 (`{ status, data, message, errorCode }`)
 - [ ] **에러 핸들링** 구현 (`handleApiError` 사용)

@@ -201,6 +201,8 @@ export async function DELETE(request: NextRequest) {
 
 ### 4-1. [id] 파라미터
 
+**중요**: Next.js 15부터 `params`는 **Promise**로 변경되었습니다. 반드시 `await`를 사용해야 합니다.
+
 ```ts
 // app/api/products/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
@@ -210,10 +212,11 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // ⭐ Promise 타입
 ) {
   try {
-    const product = await ProductService.getProductById(params.id);
+    const { id } = await params;  // ⭐ await 필수!
+    const product = await ProductService.getProductById(id);
 
     if (!product) {
       return NextResponse.json(
@@ -233,7 +236,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // ⭐ Promise 타입
 ) {
   try {
     const session = await getSession(request);
@@ -245,12 +248,56 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const product = await ProductService.updateProduct(params.id, body);
+    const { id } = await params;  // ⭐ await 필수!
+    const product = await ProductService.updateProduct(id, body);
 
     return NextResponse.json({ status: 'success', data: product });
   } catch (error) {
     // 에러 처리
   }
+}
+```
+
+### 4-2. 다중 파라미터
+
+```ts
+// app/api/artists/[slug]/products/[productSlug]/route.ts
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string; productSlug: string }> }
+) {
+  const { slug, productSlug } = await params;  // ⭐ 구조분해 할당으로 한번에 await
+
+  const product = await ProductService.getProductByArtistAndSlug(slug, productSlug);
+  return NextResponse.json({ status: 'success', data: product });
+}
+```
+
+### 4-3. 주의사항
+
+⚠️ **절대 하지 말아야 할 것**:
+
+```ts
+// ❌ 잘못된 예시 - await 없이 직접 사용
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  // TypeScript 에러 발생!
+  const product = await ProductService.getProductById(params.id);
+}
+```
+
+✅ **올바른 예시**:
+
+```ts
+// ✅ 올바른 예시 - await로 먼저 받기
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;  // 먼저 await!
+  const product = await ProductService.getProductById(id);
 }
 ```
 
@@ -381,6 +428,7 @@ return NextResponse.json(
 새 API Route 작성 시 확인:
 
 - [ ] 적절한 HTTP 메서드 사용 (GET, POST, PATCH, DELETE)
+- [ ] **동적 라우트의 params는 `Promise` 타입으로 선언하고 `await` 사용** ⭐ Next.js 15 필수
 - [ ] 인증이 필요하면 `getSession()` 확인
 - [ ] Server Service 호출 (비즈니스 로직은 Service에)
 - [ ] 통일된 응답 형식 (`{ status, data }`)

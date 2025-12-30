@@ -109,6 +109,9 @@ export const FullWidth: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    children: "버튼",
+  },
   render: () => (
     <div className="flex flex-col gap-4 min-w-[300px]">
       <div className="flex flex-col gap-2">

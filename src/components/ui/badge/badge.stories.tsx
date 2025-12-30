@@ -56,6 +56,9 @@ export const Medium: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    children: "뱃지",
+  },
   render: () => (
     <div className="flex flex-col gap-8">
       <div className="flex flex-col gap-4">

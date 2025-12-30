@@ -5,6 +5,7 @@
  */
 
 import { NextRequest } from 'next/server';
+import { vi } from 'vitest';
 
 /**
  * NextRequest 모킹 생성
@@ -31,17 +32,20 @@ export function createMockRequest(options: {
   });
 
   // Request options
-  const requestInit: RequestInit = {
+  const requestInit = {
     method,
     headers: {
       'Content-Type': 'application/json',
       ...headers,
     },
-  };
+  } as const;
 
   // Add body for POST/PUT/PATCH
   if (body && ['POST', 'PUT', 'PATCH'].includes(method)) {
-    requestInit.body = JSON.stringify(body);
+    return new NextRequest(urlObj.toString(), {
+      ...requestInit,
+      body: JSON.stringify(body),
+    });
   }
 
   return new NextRequest(urlObj.toString(), requestInit);

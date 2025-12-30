@@ -8,13 +8,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { LogService } from '@/lib/server/services/log.service';
 import { handleApiError, successResponse, errorResponse } from '@/lib/server/utils/api-response';
 import { getCurrentUser } from '@/lib/server/utils/supabase';
+import { getClientIp } from '@/lib/server/utils/request';
 
 // ===== 다운로드 링크 생성 API 예시 =====
 
 export async function generateDownloadLinkExample(
   request: NextRequest,
-  { params }: { params: { productId: string } }
+  { params }: { params: Promise<{ productId: string }> }
 ) {
+  const { productId } = await params;
   try {
     const user = await getCurrentUser();
     if (!user) {
@@ -34,9 +36,9 @@ export async function generateDownloadLinkExample(
     if (!hasPermission) {
       // 권한 없는 다운로드 시도 로그
       await LogService.logUnauthorizedDownload(
-        params.productId,
+        productId,
         user.id,
-        request.ip
+        getClientIp(request)
       );
 
       return errorResponse(
@@ -53,7 +55,7 @@ export async function generateDownloadLinkExample(
     const expiresIn = 3600; // 1시간
 
     // 다운로드 링크 생성 로그
-    await LogService.logDownloadLinkGenerated(params.productId, orderId, user.id);
+    await LogService.logDownloadLinkGenerated(productId, orderId, user.id);
 
     return successResponse({
       downloadUrl,
@@ -69,16 +71,17 @@ export async function generateDownloadLinkExample(
 
 export async function downloadDigitalProductExample(
   request: NextRequest,
-  { params }: { params: { productId: string; orderId: string } }
+  { params }: { params: Promise<{ productId: string; orderId: string }> }
 ) {
+  const { productId, orderId } = await params;
   try {
     const user = await getCurrentUser();
     if (!user) {
       // 인증되지 않은 다운로드 시도 로그
       await LogService.logUnauthorizedDownload(
-        params.productId,
+        productId,
         null,
-        request.ip
+        getClientIp(request)
       );
 
       return errorResponse('인증이 필요합니다', 401, 'UNAUTHENTICATED');
@@ -88,17 +91,17 @@ export async function downloadDigitalProductExample(
     // - 사용자가 해당 상품을 구매했는지 확인
     // - 주문 상태가 PAID 이상인지 확인
     // - 다운로드 횟수 제한 확인 (선택적)
-    // const order = await OrderService.getOrderById(params.orderId);
-    // const orderItem = order.items.find(item => item.product_id === params.productId);
+    // const order = await OrderService.getOrderById(orderId);
+    // const orderItem = order.items.find(item => item.product_id === productId);
 
     const hasPermission = true; // 실제로는 위 로직으로 확인
 
     if (!hasPermission) {
       // 권한 없는 다운로드 시도 로그
       await LogService.logUnauthorizedDownload(
-        params.productId,
+        productId,
         user.id,
-        request.ip
+        getClientIp(request)
       );
 
       return errorResponse(
@@ -110,7 +113,7 @@ export async function downloadDigitalProductExample(
 
     // TODO: 실제 파일 다운로드 로직
     // const fileStream = await downloadFromR2(productId);
-    // const product = await ProductService.getProductById(params.productId);
+    // const product = await ProductService.getProductById(productId);
 
     const product = {
       name: '미루루 보이스팩 Vol.1',
@@ -119,10 +122,10 @@ export async function downloadDigitalProductExample(
 
     // 디지털 상품 다운로드 로그
     await LogService.logDigitalProductDownload(
-      params.productId,
-      params.orderId,
+      productId,
+      orderId,
       user.id,
-      request.ip,
+      getClientIp(request),
       {
         productName: product.name,
         fileSize: product.file_size,
@@ -130,7 +133,7 @@ export async function downloadDigitalProductExample(
     );
 
     // TODO: 다운로드 횟수 증가 (DB 업데이트)
-    // await OrderService.incrementDownloadCount(params.orderId, params.productId);
+    // await OrderService.incrementDownloadCount(orderId, productId);
 
     // 실제로는 파일 스트림을 반환
     return new NextResponse('File stream here', {
@@ -148,8 +151,9 @@ export async function downloadDigitalProductExample(
 
 export async function handleExpiredLinkExample(
   request: NextRequest,
-  { params }: { params: { productId: string; token: string } }
+  { params }: { params: Promise<{ productId: string; token: string }> }
 ) {
+  const { productId, token } = await params;
   try {
     const user = await getCurrentUser();
 
@@ -161,9 +165,9 @@ export async function handleExpiredLinkExample(
     if (isExpired) {
       // 만료된 링크 접근 로그
       await LogService.logExpiredLinkAccess(
-        params.productId,
+        productId,
         user?.id || null,
-        request.ip
+        getClientIp(request)
       );
 
       return errorResponse(

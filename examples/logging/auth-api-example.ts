@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LogService } from '@/lib/server/services/log.service';
 import { handleApiError, successResponse } from '@/lib/server/utils/api-response';
+import { getClientIp } from '@/lib/server/utils/request';
 
 // ===== 회원가입 API 예시 =====
 
@@ -22,7 +23,7 @@ export async function signupExample(request: NextRequest) {
     await LogService.logSignupSuccess(
       userId,
       email,
-      request.ip,
+      getClientIp(request),
       request.headers.get('user-agent') || undefined
     );
 
@@ -33,7 +34,7 @@ export async function signupExample(request: NextRequest) {
     await LogService.logSignupFailed(
       email,
       error instanceof Error ? error.message : '알 수 없는 오류',
-      request.ip
+      getClientIp(request)
     );
 
     return handleApiError(error);
@@ -54,7 +55,7 @@ export async function loginExample(request: NextRequest) {
     // 성공 시 로그 기록
     await LogService.logLoginSuccess(
       userId,
-      request.ip,
+      getClientIp(request),
       request.headers.get('user-agent') || undefined
     );
 
@@ -65,7 +66,7 @@ export async function loginExample(request: NextRequest) {
     await LogService.logLoginFailed(
       email,
       error instanceof Error ? error.message : '잘못된 이메일 또는 비밀번호',
-      request.ip,
+      getClientIp(request),
       request.headers.get('user-agent') || undefined
     );
 

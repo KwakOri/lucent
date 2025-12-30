@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LogService } from '@/lib/server/services/log.service';
 import { getCurrentUser } from '@/lib/server/utils/supabase';
+import { getClientIp } from '@/lib/server/utils/request';
 
 // ===== 권한 없는 API 접근 로깅 예시 =====
 
@@ -24,7 +25,7 @@ export async function logUnauthorizedAccessExample(request: NextRequest) {
     await LogService.logUnauthorizedAccess(
       user?.id || null,
       request.nextUrl.pathname,
-      request.ip,
+      getClientIp(request),
       request.headers.get('user-agent') || undefined
     );
 
@@ -45,7 +46,7 @@ export async function logUnauthorizedAccessExample(request: NextRequest) {
  */
 export async function logRateLimitExample(request: NextRequest) {
   const user = await getCurrentUser();
-  const identifier = user?.id || request.ip || 'unknown';
+  const identifier = user?.id || getClientIp(request) || 'unknown';
 
   // TODO: Rate Limiter 체크
   // const limiter = new RateLimiter();
@@ -58,7 +59,7 @@ export async function logRateLimitExample(request: NextRequest) {
     await LogService.logRateLimitExceeded(
       user?.id || null,
       request.nextUrl.pathname,
-      request.ip
+      getClientIp(request)
     );
 
     return NextResponse.json(
@@ -96,7 +97,7 @@ export async function detectSuspiciousLoginAttemptsExample(
     await LogService.logSuspiciousActivity(
       null, // 아직 로그인 전이므로 userId 없음
       `연속 로그인 실패 시도 (${recentFailures.total}회)`,
-      request.ip,
+      getClientIp(request),
       {
         email,
         failureCount: recentFailures.total,
@@ -165,7 +166,7 @@ export async function detectSuspiciousIPActivityExample(
   request: NextRequest,
   activityType: string
 ) {
-  const ipAddress = request.ip;
+  const ipAddress = getClientIp(request);
 
   // TODO: 동일 IP에서 다양한 계정으로 로그인 시도 등 감지
   // const recentActivities = await LogService.getLogs({

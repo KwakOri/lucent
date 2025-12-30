@@ -62,6 +62,11 @@ export const Group: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    name: "option",
+    value: "default",
+    label: "라디오",
+  },
   render: () => (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">

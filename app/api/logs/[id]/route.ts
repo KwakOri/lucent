@@ -14,7 +14,7 @@ import { isAdmin } from '@/lib/server/utils/supabase';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // 관리자 권한 확인
@@ -23,7 +23,8 @@ export async function GET(
       return errorResponse('관리자 권한이 필요합니다', 403, 'UNAUTHORIZED');
     }
 
-    const log = await LogService.getLogById(params.id);
+    const { id } = await params;
+    const log = await LogService.getLogById(id);
 
     if (!log) {
       return errorResponse('로그를 찾을 수 없습니다', 404, 'LOG_NOT_FOUND');

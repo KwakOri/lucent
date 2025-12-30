@@ -28,6 +28,11 @@ export type {
 
 // API Types
 export type {
+  // Common Response Types
+  ApiResponse,
+  PaginatedResponse,
+  PaginationInfo,
+  // Request/Response Types
   CreateProductRequest,
   UpdateProductRequest,
   GetProductsQuery,

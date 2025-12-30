@@ -56,6 +56,9 @@ export const Small: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    label: "스위치",
+  },
   render: () => (
     <div className="flex flex-col gap-4">
       <Switch label="알림 받기" />

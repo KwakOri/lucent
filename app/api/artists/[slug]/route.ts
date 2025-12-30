@@ -13,10 +13,11 @@ import { handleApiError, successResponse } from '@/lib/server/utils/api-response
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const artist = await ArtistService.getArtistBySlug(params.slug);
+    const { slug } = await params;
+    const artist = await ArtistService.getArtistBySlug(slug);
     return successResponse(artist);
   } catch (error) {
     return handleApiError(error);

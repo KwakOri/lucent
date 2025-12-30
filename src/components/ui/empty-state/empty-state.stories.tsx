@@ -54,6 +54,9 @@ export const SearchNoResults: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    title: "데이터가 없어요",
+  },
   render: () => (
     <div className="flex flex-col gap-12">
       <div className="border rounded-lg p-6">

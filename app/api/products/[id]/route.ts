@@ -17,10 +17,11 @@ import type { UpdateProductRequest } from '@/types/api';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const product = await ProductService.getProductById(params.id);
+    const { id } = await params;
+    const product = await ProductService.getProductById(id);
 
     return successResponse(product);
   } catch (error) {
@@ -33,7 +34,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminCheck = await isAdmin();
@@ -46,8 +47,9 @@ export async function PATCH(
     const body = await request.json() as UpdateProductRequest;
     const adminId = 'admin-id'; // TODO: 실제 관리자 ID
 
+    const { id } = await params;
     const product = await ProductService.updateProduct(
-      params.id,
+      id,
       body,
       adminId
     );
@@ -63,7 +65,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const adminCheck = await isAdmin();
@@ -75,7 +77,8 @@ export async function DELETE(
 
     const adminId = 'admin-id'; // TODO: 실제 관리자 ID
 
-    await ProductService.deleteProduct(params.id, adminId);
+    const { id } = await params;
+    await ProductService.deleteProduct(id, adminId);
 
     return successResponse({ message: '상품이 삭제되었습니다' });
   } catch (error) {

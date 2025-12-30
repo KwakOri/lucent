@@ -56,6 +56,9 @@ export const Small: Story = {
 };
 
 export const AllVariants: Story = {
+  args: {
+    label: "체크박스",
+  },
   render: () => (
     <div className="flex flex-col gap-4">
       <Checkbox label="기본 체크박스" />

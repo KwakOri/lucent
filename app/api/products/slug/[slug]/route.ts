@@ -10,10 +10,11 @@ import { handleApiError, successResponse } from '@/lib/server/utils/api-response
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const product = await ProductService.getProductBySlug(params.slug);
+    const { slug } = await params;
+    const product = await ProductService.getProductBySlug(slug);
 
     return successResponse(product);
   } catch (error) {

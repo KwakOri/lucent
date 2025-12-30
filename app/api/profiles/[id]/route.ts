@@ -16,10 +16,11 @@ import type { UpdateProfileRequest } from '@/types/api';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const profile = await ProfileService.getProfile(params.id);
+    const { id } = await params;
+    const profile = await ProfileService.getProfile(id);
     return successResponse(profile);
   } catch (error) {
     return handleApiError(error);
@@ -31,7 +32,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -41,8 +42,9 @@ export async function PATCH(
 
     const body = await request.json() as UpdateProfileRequest;
 
+    const { id } = await params;
     const profile = await ProfileService.updateProfile(
-      params.id,
+      id,
       user.id,
       body
     );

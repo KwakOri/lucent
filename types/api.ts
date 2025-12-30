@@ -7,6 +7,40 @@
 import { TablesInsert, TablesUpdate, Enums } from './database';
 
 /**
+ * Common API Response Types
+ */
+
+/**
+ * 기본 API 응답
+ */
+export interface ApiResponse<T> {
+  status: 'success' | 'error';
+  data: T;
+  message?: string;
+  errorCode?: string;
+}
+
+/**
+ * 페이지네이션 정보
+ */
+export interface PaginationInfo {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+/**
+ * 페이지네이션 응답
+ */
+export interface PaginatedResponse<T> {
+  status: 'success';
+  data: T[];
+  pagination: PaginationInfo;
+  message?: string;
+}
+
+/**
  * Product API Types
  */
 export interface CreateProductRequest extends TablesInsert<'products'> {}
