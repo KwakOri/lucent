@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       order,
       eventCategory,
       eventType,
-      severity: severity as any,
+      severity: severity as 'info' | 'warning' | 'error' | 'critical' | undefined,
       userId,
       dateFrom,
       dateTo,

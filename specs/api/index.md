@@ -477,3 +477,149 @@ Cloudflare R2 기반 이미지 중앙 관리
 
 - UI에서 필요한 데이터 변환은 **Service Layer**에서 처리
 - React Query hook은 최대한 **옵션을 param으로 받고 바로 호출** 가능하도록 설계
+
+---
+
+## 10. 로깅 및 모니터링 (필수)
+
+**모든 API 구현 시 중요 이벤트는 반드시 로그로 기록해야 한다.**
+
+### 10-1. 로깅 원칙
+
+- **목적**: 보안, 거래 추적, 고객 지원, 디버깅
+- **대상**: 인증, 주문, 결제, 다운로드, 보안 위협
+- **방법**: `LogService` 사용
+- **위치**: API Route 또는 Service Layer
+
+### 10-2. 로깅 대상 이벤트
+
+#### 필수 로깅 (1차 MVP)
+
+| 카테고리 | 이벤트 타입 | 로깅 시점 |
+|---------|------------|----------|
+| **인증** | `user.signup.success` | 회원가입 성공 |
+| | `user.signup.failed` | 회원가입 실패 |
+| | `user.login.success` | 로그인 성공 |
+| | `user.login.failed` | 로그인 실패 |
+| | `user.logout` | 로그아웃 |
+| | `user.email_verification.sent` | 이메일 인증 발송 |
+| | `user.email_verification.success` | 이메일 인증 완료 |
+| | `user.password_reset.requested` | 비밀번호 재설정 요청 |
+| **주문** | `order.created` | 주문 생성 |
+| | `order.status.changed` | 주문 상태 변경 |
+| | `order.cancelled` | 주문 취소 |
+| | `order.refund.requested` | 환불 요청 |
+| **다운로드** | `digital_product.download` | 디지털 상품 다운로드 |
+| | `digital_product.download.unauthorized` | 권한 없는 다운로드 시도 |
+| **보안** | `security.unauthorized.access` | 권한 없는 API 접근 |
+| | `security.rate_limit.exceeded` | API 호출 제한 초과 |
+| | `security.suspicious.activity` | 의심스러운 활동 감지 |
+
+### 10-3. 구현 방법
+
+**기본 사용**:
+```typescript
+import { LogService } from '@/lib/server/services/log.service';
+
+// API Route에서 사용
+export async function POST(request: NextRequest) {
+  try {
+    const user = await AuthService.login(email, password);
+
+    // ✅ 성공 시 로그 기록
+    await LogService.logLoginSuccess(
+      user.id,
+      request.ip,
+      request.headers.get('user-agent') || undefined
+    );
+
+    return successResponse(user);
+  } catch (error) {
+    // ✅ 실패 시 로그 기록
+    await LogService.logLoginFailed(
+      email,
+      error.message,
+      request.ip
+    );
+
+    return handleApiError(error);
+  }
+}
+```
+
+**편의 메서드**:
+```typescript
+// 인증
+LogService.logLoginSuccess(userId, ip, userAgent)
+LogService.logLoginFailed(email, reason, ip)
+LogService.logSignupSuccess(userId, email, ip)
+
+// 주문
+LogService.logOrderCreated(orderId, userId, amount, metadata)
+LogService.logOrderStatusChanged(orderId, userId, adminId, before, after)
+
+// 다운로드
+LogService.logDigitalProductDownload(productId, orderId, userId, ip)
+LogService.logUnauthorizedDownload(productId, userId, ip)
+
+// 보안
+LogService.logUnauthorizedAccess(userId, path, ip)
+LogService.logSuspiciousActivity(userId, description, ip, metadata)
+```
+
+### 10-4. 중요 사항
+
+**절대 원칙**:
+1. ❌ **로그 기록 실패로 서비스가 중단되어서는 안 됨**
+   - `LogService.log()`는 내부적으로 에러를 처리함
+   - 로그 실패 시 콘솔 출력만 하고 계속 진행
+
+2. ❌ **민감 정보를 로그에 포함하지 말 것**
+   - 비밀번호, 토큰 등 절대 기록 금지
+   - 이메일, IP 주소는 기록 가능
+
+3. ✅ **성공과 실패 모두 기록**
+   - 성공: `severity: 'info'`
+   - 실패/경고: `severity: 'warning'` 또는 `'error'`
+
+**성능 최적화**:
+```typescript
+// Fire and Forget (await 생략 가능)
+LogService.logLoginSuccess(userId, request.ip);
+return NextResponse.json({ status: 'success' });
+```
+
+### 10-5. 예시 코드 참조
+
+상세한 구현 예시는 다음 문서 참조:
+- 📄 인증 API 로깅: `/examples/logging/auth-api-example.ts`
+- 📄 주문 API 로깅: `/examples/logging/order-api-example.ts`
+- 📄 다운로드 API 로깅: `/examples/logging/download-api-example.ts`
+- 📄 보안 로깅: `/examples/logging/security-example.ts`
+- 📄 통합 가이드: `/examples/logging/README.md`
+
+### 10-6. 로그 조회 (관리자)
+
+로그 조회 API는 이미 구현되어 있음:
+- `GET /api/logs` - 로그 목록 조회 (필터링, 페이지네이션)
+- `GET /api/logs/:id` - 로그 단일 조회
+- `GET /api/logs/stats` - 로그 통계
+
+📄 상세: `/specs/api/server/routes/logs/index.md`
+
+---
+
+## 11. 요약 체크리스트
+
+새로운 API 구현 시 다음을 확인하십시오:
+
+- [ ] **스펙 문서** 작성 또는 확인 (`/specs/api/server/routes/`, `/specs/api/server/services/`)
+- [ ] **3-Layer 아키텍처** 준수 (API Route → Service Layer → DB)
+- [ ] **타입 정의** 사용 (`/types/database.ts` 참조)
+- [ ] **통일된 응답 형식** 적용 (`{ status, data, message, errorCode }`)
+- [ ] **에러 핸들링** 구현 (`handleApiError` 사용)
+- [ ] **인증/권한 검증** (필요시)
+- [ ] **로깅 적용** (`LogService` 사용, 성공/실패 모두 기록) ⭐ **필수**
+- [ ] **예시 코드** 참조 (`/examples/logging/`)
+
+**기억하십시오: 로깅은 선택이 아닌 필수입니다!**

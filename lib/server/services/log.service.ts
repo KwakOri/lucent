@@ -12,6 +12,7 @@
 
 import { createServerClient } from '@/lib/server/utils/supabase';
 import { ApiError } from '@/lib/server/utils/errors';
+import type { Json } from '@/types/database';
 
 // ===== Types =====
 
@@ -21,16 +22,16 @@ interface LogEventInput {
   eventType: string;
   eventCategory?: string;
   severity?: Severity;
-  userId?: string;
-  adminId?: string;
-  resourceType?: string;
-  resourceId?: string;
+  userId?: string | null;
+  adminId?: string | null;
+  resourceType?: string | null;
+  resourceId?: string | null;
   message: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, Json> | null;
   ipAddress?: string | null;
   userAgent?: string | null;
   requestPath?: string | null;
-  changes?: Record<string, any>;
+  changes?: Record<string, Json> | null;
 }
 
 interface GetLogsOptions {
@@ -57,11 +58,11 @@ interface LogWithRelations {
   resource_type: string | null;
   resource_id: string | null;
   message: string;
-  metadata: Record<string, any> | null;
+  metadata: Json | null;
   ip_address: string | null;
   user_agent: string | null;
   request_path: string | null;
-  changes: Record<string, any> | null;
+  changes: Json | null;
   created_at: string;
   user?: {
     email: string;
@@ -261,7 +262,7 @@ export class LogService {
     const { data: categoryData } = await categoryQuery;
 
     const byCategory: Record<string, number> = {};
-    categoryData?.forEach((log) => {
+    categoryData?.forEach((log: { event_category: string }) => {
       byCategory[log.event_category] = (byCategory[log.event_category] || 0) + 1;
     });
 
@@ -273,7 +274,7 @@ export class LogService {
     const { data: severityData } = await severityQuery;
 
     const bySeverity: Record<string, number> = {};
-    severityData?.forEach((log) => {
+    severityData?.forEach((log: { severity: string }) => {
       bySeverity[log.severity] = (bySeverity[log.severity] || 0) + 1;
     });
 
@@ -302,9 +303,9 @@ export class LogService {
       severity: 'info',
       userId,
       message: '신규 회원 가입',
-      metadata: { email },
-      ipAddress,
-      userAgent,
+      metadata: { email: email as Json },
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
     });
   }
 
@@ -320,8 +321,8 @@ export class LogService {
       eventType: 'user.signup.failed',
       severity: 'warning',
       message: `회원가입 실패: ${reason}`,
-      metadata: { email, reason },
-      ipAddress,
+      metadata: { email: email as Json, reason: reason as Json },
+      ipAddress: ipAddress || null,
     });
   }
 
@@ -335,9 +336,9 @@ export class LogService {
     await this.log({
       eventType: 'user.email_verification.sent',
       severity: 'info',
-      userId,
+      userId: userId || null,
       message: '이메일 인증 발송',
-      metadata: { email },
+      metadata: { email: email as Json },
     });
   }
 
@@ -353,7 +354,7 @@ export class LogService {
       severity: 'info',
       userId,
       message: '이메일 인증 완료',
-      metadata: { email },
+      metadata: { email: email as Json },
     });
   }
 
@@ -368,7 +369,7 @@ export class LogService {
       eventType: 'user.email_verification.failed',
       severity: 'warning',
       message: `이메일 인증 실패: ${reason}`,
-      metadata: { email, reason },
+      metadata: { email: email as Json, reason: reason as Json },
     });
   }
 
@@ -385,8 +386,8 @@ export class LogService {
       severity: 'info',
       userId,
       message: '사용자 로그인 성공',
-      ipAddress,
-      userAgent,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
     });
   }
 
@@ -403,9 +404,9 @@ export class LogService {
       eventType: 'user.login.failed',
       severity: 'warning',
       message: `로그인 실패: ${reason}`,
-      metadata: { email, reason },
-      ipAddress,
-      userAgent,
+      metadata: { email: email as Json, reason: reason as Json },
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
     });
   }
 
@@ -429,7 +430,7 @@ export class LogService {
       eventType: 'user.password_reset.requested',
       severity: 'info',
       message: '비밀번호 재설정 요청',
-      metadata: { email },
+      metadata: { email: email as Json },
     });
   }
 
@@ -445,7 +446,7 @@ export class LogService {
       severity: 'info',
       userId,
       message: '비밀번호 재설정 완료',
-      metadata: { email },
+      metadata: { email: email as Json },
     });
   }
 
@@ -457,7 +458,7 @@ export class LogService {
       eventType: 'user.password_reset.failed',
       severity: 'warning',
       message: `비밀번호 재설정 실패: ${reason}`,
-      metadata: { email, reason },
+      metadata: { email: email as Json, reason: reason as Json },
     });
   }
 
@@ -470,7 +471,7 @@ export class LogService {
     orderId: string,
     userId: string,
     totalAmount: number,
-    metadata?: Record<string, any>
+    metadata?: Record<string, Json>
   ): Promise<void> {
     await this.log({
       eventType: 'order.created',
@@ -479,7 +480,7 @@ export class LogService {
       resourceType: 'order',
       resourceId: orderId,
       message: '새로운 주문이 생성되었습니다',
-      metadata: { totalAmount, ...metadata },
+      metadata: { totalAmount: totalAmount as Json, ...metadata },
     });
   }
 
@@ -501,7 +502,10 @@ export class LogService {
       resourceType: 'order',
       resourceId: orderId,
       message: `주문 상태가 '${statusBefore}'에서 '${statusAfter}'로 변경되었습니다`,
-      changes: { statusBefore, statusAfter },
+      changes: {
+        statusBefore: statusBefore as Json,
+        statusAfter: statusAfter as Json
+      },
     });
   }
 
@@ -520,7 +524,7 @@ export class LogService {
       resourceType: 'order',
       resourceId: orderId,
       message: '주문이 취소되었습니다',
-      metadata: { reason },
+      metadata: reason ? { reason } : null,
     });
   }
 
@@ -539,7 +543,7 @@ export class LogService {
       resourceType: 'order',
       resourceId: orderId,
       message: '환불이 요청되었습니다',
-      metadata: { reason },
+      metadata: { reason: reason as Json },
     });
   }
 
@@ -579,7 +583,7 @@ export class LogService {
       resourceType: 'order',
       resourceId: orderId,
       message: '환불이 완료되었습니다',
-      metadata: { amount },
+      metadata: { amount: amount as Json },
     });
   }
 
@@ -593,7 +597,7 @@ export class LogService {
     orderId: string,
     userId: string,
     ipAddress?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, Json>
   ): Promise<void> {
     await this.log({
       eventType: 'digital_product.download',
@@ -602,8 +606,8 @@ export class LogService {
       resourceType: 'product',
       resourceId: productId,
       message: '디지털 상품 다운로드',
-      metadata: { orderId, ...metadata },
-      ipAddress,
+      metadata: { orderId: orderId as Json, ...metadata },
+      ipAddress: ipAddress || null,
     });
   }
 
@@ -622,7 +626,7 @@ export class LogService {
       resourceType: 'product',
       resourceId: productId,
       message: '다운로드 링크가 생성되었습니다',
-      metadata: { orderId },
+      metadata: { orderId: orderId as Json },
     });
   }
 
@@ -641,7 +645,7 @@ export class LogService {
       resourceType: 'product',
       resourceId: productId,
       message: '권한 없는 디지털 상품 다운로드 시도',
-      ipAddress,
+      ipAddress: ipAddress || null,
     });
   }
 
@@ -660,7 +664,7 @@ export class LogService {
       resourceType: 'product',
       resourceId: productId,
       message: '만료된 다운로드 링크 접근 시도',
-      ipAddress,
+      ipAddress: ipAddress || null,
     });
   }
 
@@ -681,8 +685,8 @@ export class LogService {
       userId,
       message: `권한 없는 접근 시도: ${path}`,
       requestPath: path,
-      ipAddress,
-      userAgent,
+      ipAddress: ipAddress || null,
+      userAgent: userAgent || null,
     });
   }
 
@@ -700,7 +704,7 @@ export class LogService {
       userId,
       message: `API 호출 제한 초과: ${path}`,
       requestPath: path,
-      ipAddress,
+      ipAddress: ipAddress || null,
     });
   }
 
@@ -711,15 +715,15 @@ export class LogService {
     userId: string | null,
     description: string,
     ipAddress?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, Json>
   ): Promise<void> {
     await this.log({
       eventType: 'security.suspicious.activity',
       severity: 'critical',
       userId,
       message: `의심스러운 활동 감지: ${description}`,
-      ipAddress,
-      metadata,
+      ipAddress: ipAddress || null,
+      metadata: metadata || null,
     });
   }
 }

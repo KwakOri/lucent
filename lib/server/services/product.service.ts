@@ -1,0 +1,309 @@
+/**
+ * Product Service
+ *
+ * 상품 관련 비즈니스 로직
+ * - 상품 목록/상세 조회
+ * - 상품 생성/수정/삭제 (관리자)
+ * - 재고 관리
+ */
+
+import { createServerClient } from '@/lib/server/utils/supabase';
+import { ApiError, NotFoundError } from '@/lib/server/utils/errors';
+import { Tables, TablesInsert, TablesUpdate, Enums } from '@/types/database';
+
+type Product = Tables<'products'>;
+type ProductInsert = TablesInsert<'products'>;
+type ProductUpdate = TablesUpdate<'products'>;
+type ProductType = Enums<'product_type'>;
+
+interface GetProductsOptions {
+  page?: number;
+  limit?: number;
+  artistId?: string;
+  type?: ProductType;
+  isActive?: boolean;
+  sortBy?: 'created_at' | 'price' | 'name';
+  order?: 'asc' | 'desc';
+}
+
+interface ProductWithDetails extends Product {
+  artist?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  main_image?: {
+    id: string;
+    public_url: string;
+    alt_text: string | null;
+  };
+  gallery_images?: Array<{
+    id: string;
+    public_url: string;
+    alt_text: string | null;
+    display_order: number;
+  }>;
+}
+
+export class ProductService {
+  /**
+   * 상품 목록 조회
+   */
+  static async getProducts(
+    options: GetProductsOptions = {}
+  ): Promise<{ products: ProductWithDetails[]; total: number }> {
+    const supabase = createServerClient();
+    const {
+      page = 1,
+      limit = 20,
+      artistId,
+      type,
+      isActive = true,
+      sortBy = 'created_at',
+      order = 'desc',
+    } = options;
+
+    let query = supabase
+      .from('products')
+      .select(
+        `
+        *,
+        artist:artists!products_artist_id_fkey (
+          id,
+          name,
+          slug
+        ),
+        main_image:images!products_main_image_id_fkey (
+          id,
+          public_url,
+          alt_text
+        )
+      `,
+        { count: 'exact' }
+      );
+
+    // 필터링
+    if (isActive !== undefined) {
+      query = query.eq('is_active', isActive);
+    }
+
+    if (artistId) {
+      query = query.eq('artist_id', artistId);
+    }
+
+    if (type) {
+      query = query.eq('type', type);
+    }
+
+    // 정렬
+    query = query.order(sortBy, { ascending: order === 'asc' });
+
+    // 페이지네이션
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data, error, count } = await query;
+
+    if (error) {
+      throw new ApiError('상품 목록 조회 실패', 500, 'PRODUCTS_FETCH_FAILED');
+    }
+
+    return {
+      products: data as ProductWithDetails[],
+      total: count || 0,
+    };
+  }
+
+  /**
+   * 상품 상세 조회
+   */
+  static async getProductById(id: string): Promise<ProductWithDetails> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(
+        `
+        *,
+        artist:artists!products_artist_id_fkey (
+          id,
+          name,
+          slug,
+          description
+        ),
+        main_image:images!products_main_image_id_fkey (
+          id,
+          public_url,
+          alt_text
+        ),
+        gallery_images:product_images!product_images_product_id_fkey (
+          display_order,
+          image:images!product_images_image_id_fkey (
+            id,
+            public_url,
+            alt_text
+          )
+        )
+      `
+      )
+      .eq('id', id)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      throw new NotFoundError('상품을 찾을 수 없습니다', 'PRODUCT_NOT_FOUND');
+    }
+
+    if (error) {
+      throw new ApiError('상품 조회 실패', 500, 'PRODUCT_FETCH_FAILED');
+    }
+
+    return data as ProductWithDetails;
+  }
+
+  /**
+   * Slug로 상품 조회
+   */
+  static async getProductBySlug(slug: string): Promise<ProductWithDetails> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(
+        `
+        *,
+        artist:artists!products_artist_id_fkey (
+          id,
+          name,
+          slug
+        ),
+        main_image:images!products_main_image_id_fkey (
+          id,
+          public_url,
+          alt_text
+        )
+      `
+      )
+      .eq('slug', slug)
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      throw new NotFoundError('상품을 찾을 수 없습니다', 'PRODUCT_NOT_FOUND');
+    }
+
+    if (error) {
+      throw new ApiError('상품 조회 실패', 500, 'PRODUCT_FETCH_FAILED');
+    }
+
+    return data as ProductWithDetails;
+  }
+
+  /**
+   * 상품 생성 (관리자)
+   */
+  static async createProduct(
+    productData: ProductInsert,
+    adminId: string
+  ): Promise<Product> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .insert(productData)
+      .select()
+      .single();
+
+    if (error) {
+      throw new ApiError('상품 생성 실패', 500, 'PRODUCT_CREATE_FAILED');
+    }
+
+    // TODO: 로그 기록 (관리자 작업)
+    // await LogService.logProductCreated(data.id, adminId, data.name);
+
+    return data;
+  }
+
+  /**
+   * 상품 수정 (관리자)
+   */
+  static async updateProduct(
+    id: string,
+    productData: ProductUpdate,
+    adminId: string
+  ): Promise<Product> {
+    const supabase = createServerClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(productData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error && error.code === 'PGRST116') {
+      throw new NotFoundError('상품을 찾을 수 없습니다', 'PRODUCT_NOT_FOUND');
+    }
+
+    if (error) {
+      throw new ApiError('상품 수정 실패', 500, 'PRODUCT_UPDATE_FAILED');
+    }
+
+    // TODO: 로그 기록 (관리자 작업)
+
+    return data;
+  }
+
+  /**
+   * 상품 삭제 (관리자)
+   */
+  static async deleteProduct(id: string, adminId: string): Promise<void> {
+    const supabase = createServerClient();
+
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      throw new ApiError('상품 삭제 실패', 500, 'PRODUCT_DELETE_FAILED');
+    }
+
+    // TODO: 로그 기록 (관리자 작업)
+  }
+
+  /**
+   * 재고 업데이트 (관리자)
+   */
+  static async updateStock(
+    id: string,
+    stock: number,
+    adminId: string
+  ): Promise<Product> {
+    const supabase = createServerClient();
+
+    // 기존 재고 조회
+    const { data: product } = await supabase
+      .from('products')
+      .select('stock')
+      .eq('id', id)
+      .single();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ stock })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new ApiError('재고 업데이트 실패', 500, 'STOCK_UPDATE_FAILED');
+    }
+
+    // TODO: 로그 기록 (재고 변경)
+    // if (product) {
+    //   await LogService.logStockChanged(id, adminId, product.stock, stock);
+    // }
+
+    return data;
+  }
+}
