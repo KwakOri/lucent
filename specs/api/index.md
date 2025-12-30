@@ -10,23 +10,164 @@
 프로젝트 전반의 데이터 흐름은 다음과 같다:
 
 ```
-Client (React Query hook)
+Frontend Component
        ↓
-Service Layer (재가공, 호출)
+React Query Hook (useProducts)
        ↓
-Next.js API Route
+Client Services (ProductsAPI.getProducts) - fetch로 API 호출
        ↓
-Supabase DB (Server-side 로직)
+       --- HTTP 경계 ---
+       ↓
+Next.js API Route (인증, 권한 검증, 요청/응답 처리)
+       ↓
+Server Service (ProductService.getProducts) - 비즈니스 로직, DB 접근
+       ↓
+Supabase DB
 ```
 
-- **클라이언트**: React Query hook에서 데이터를 요청/전송
-- **Service Layer**: API 호출 추상화, 필요 시 데이터 가공
-- **API Route**: Supabase DB 로직 실행, 서버 전용 처리
-- **DB**: 모든 DB 관련 로직은 서버 측에서만 실행
+### 1-1. 레이어별 역할
+
+| 레이어 | 위치 | 역할 | 문서 |
+|--------|------|------|------|
+| **Frontend Component** | `/app`, `/components` | UI 렌더링, 사용자 인터랙션 | - |
+| **React Query Hook** | `/lib/client/hooks` | 데이터 fetching 상태 관리, 캐싱 | [`/specs/api/client/hooks/index.md`](/specs/api/client/hooks/index.md) |
+| **Client Services** | `/lib/client/services` | API Route 호출 (fetch), 타입 안전성 | [`/specs/api/client/services/index.md`](/specs/api/client/services/index.md) |
+| **API Route** | `/app/api` | HTTP 처리, 인증/권한 검증, 에러 핸들링 | [`/specs/api/server/routes/index.md`](/specs/api/server/routes/index.md) |
+| **Server Service** | `/lib/server/services` | 비즈니스 로직, DB 접근, 트랜잭션 | [`/specs/api/server/services/index.md`](/specs/api/server/services/index.md) |
+| **Database** | Supabase | 데이터 저장소 | - |
+
+### 1-2. 예시 코드
+
+```tsx
+// 1. Component
+function ProductList() {
+  const { data, isLoading } = useProducts(); // React Query Hook
+  // ...
+}
+
+// 2. React Query Hook
+export function useProducts() {
+  return useQuery({
+    queryKey: ['products'],
+    queryFn: () => ProductsAPI.getProducts(), // Client Services
+  });
+}
+
+// 3. Client Services
+export const ProductsAPI = {
+  async getProducts() {
+    return apiClient.get('/api/products'); // fetch
+  }
+};
+
+// 4. API Route
+export async function GET(request: Request) {
+  const products = await ProductService.getProducts(); // Server Service
+  return NextResponse.json({ status: 'success', data: products });
+}
+
+// 5. Server Service
+export class ProductService {
+  static async getProducts() {
+    const supabase = createServerClient(); // DB 접근
+    const { data } = await supabase.from('products').select('*');
+    return data;
+  }
+}
+```
 
 ---
 
-## 2. API 응답 형식
+## 2. 타입 정의 및 스키마 참조
+
+모든 데이터베이스 관련 로직 작성 시 **반드시** `/types/database.ts` 파일을 참조해야 한다.
+
+### 2-1. Database 타입 파일
+
+**위치**: `/types/database.ts`
+
+이 파일은 Supabase CLI를 통해 자동 생성되며, 데이터베이스 스키마의 TypeScript 타입 정의를 포함한다.
+
+### 2-2. 주요 타입
+
+```ts
+import { Database, Tables, TablesInsert, TablesUpdate, Enums } from '@/types/database';
+
+// 테이블 Row 타입 (조회 시)
+type Product = Tables<'products'>;
+type Order = Tables<'orders'>;
+type Artist = Tables<'artists'>;
+
+// Insert 타입 (생성 시)
+type ProductInsert = TablesInsert<'products'>;
+type OrderInsert = TablesInsert<'orders'>;
+
+// Update 타입 (수정 시)
+type ProductUpdate = TablesUpdate<'products'>;
+type OrderUpdate = TablesUpdate<'orders'>;
+
+// Enum 타입
+type OrderStatus = Enums<'order_status'>; // 'PENDING' | 'PAID' | 'MAKING' | 'SHIPPING' | 'DONE'
+type ProductType = Enums<'product_type'>; // 'VOICE_PACK' | 'PHYSICAL_GOODS'
+type VerificationPurpose = Enums<'verification_purpose'>; // 'signup' | 'reset_password' | 'change_email'
+```
+
+### 2-3. 사용 규칙
+
+**필수 사항**:
+1. **API Route 작성 시**: `Tables<'테이블명'>` 타입 사용
+2. **Service Layer 작성 시**: database.ts에서 타입 import
+3. **데이터 삽입/수정 시**: `TablesInsert`, `TablesUpdate` 타입 사용
+4. **Enum 값 사용 시**: `Enums<'enum명'>` 타입 또는 `Constants.public.Enums` 사용
+
+**예시 - API Route**:
+```ts
+// app/api/products/route.ts
+import { Tables, TablesInsert } from '@/types/database';
+
+type Product = Tables<'products'>;
+type ProductInsert = TablesInsert<'products'>;
+
+export async function POST(request: Request) {
+  const body: ProductInsert = await request.json();
+  // ...
+}
+```
+
+**예시 - Service Layer**:
+```ts
+// lib/services/product.service.ts
+import { Tables, TablesInsert, Enums } from '@/types/database';
+
+type Product = Tables<'products'>;
+type ProductType = Enums<'product_type'>;
+
+export class ProductService {
+  static async getProducts(type?: ProductType): Promise<Product[]> {
+    // ...
+  }
+}
+```
+
+### 2-4. 스키마 업데이트 프로세스
+
+1. **Migration 작성**: `/supabase/migrations/` 폴더에 새 마이그레이션 추가
+2. **타입 재생성**: `npm run db:types` 명령어로 database.ts 재생성
+3. **코드 수정**: 타입 변경에 따른 코드 수정 (TypeScript가 에러 표시)
+4. **스펙 문서 업데이트**: 관련 스펙 문서에 변경사항 반영
+
+### 2-5. 주의사항
+
+- **절대 수동으로 database.ts 파일 수정 금지**
+- **항상 마이그레이션 파일 기반으로 타입 재생성**
+- **RLS 정책 없음**: 모든 권한 검증은 API Route에서 수행
+- **서버 전용**: 클라이언트에서 Supabase 직접 접근 금지
+
+📄 데이터베이스 스키마: `/supabase/migrations/20250101000000_initial_schema.sql`
+
+---
+
+## 3. API 응답 형식
 
 - **통일된 기본 구조 (옵션 C)**
 
@@ -61,7 +202,7 @@ Supabase DB (Server-side 로직)
 
 ---
 
-## 3. 인증 방식
+## 4. 인증 방식
 
 - **기본 인증**: Supabase Auth JWT
 
@@ -82,7 +223,7 @@ Supabase DB (Server-side 로직)
 
 ---
 
-## 4. 네이밍 규칙
+## 5. 네이밍 규칙
 
 | 레이어           | 권장 네이밍 예시                |
 | ---------------- | ------------------------------- |
@@ -96,16 +237,16 @@ Supabase DB (Server-side 로직)
 
 ---
 
-## 5. 에러 핸들링 전략
+## 6. 에러 핸들링 전략
 
-### 5-1. 에러 구분
+### 6-1. 에러 구분
 
 | 구분            | 정의                                       | 처리 방법                                            |
 | --------------- | ------------------------------------------ | ---------------------------------------------------- |
 | 클라이언트 에러 | 사용자의 잘못된 입력, 검증 실패            | Form Field 단위 표시 (Inline Error), Toast 최소 사용 |
 | 서버 에러       | Supabase, Cloudflare 등 서버/네트워크 문제 | Toast, 페이지 상단 Form Error, 친절한 메시지         |
 
-### 5-2. 서버 에러 예시
+### 6-2. 서버 에러 예시
 
 ```ts
 const ERROR_MESSAGES = {
@@ -119,7 +260,7 @@ const ERROR_MESSAGES = {
   - 클라이언트 에러: hook 내부 validation 처리
   - 서버 에러: `useQuery` / `useMutation`에서 `isError` + `error` 처리
 
-### 5-3. 장점
+### 6-3. 장점
 
 - 사용자 경험 개선 → 서버 문제인지 입력 오류인지 명확히 전달
 - UI 일관성 유지 → 서버 에러는 Toast, 클라이언트 에러는 필드 단위
@@ -127,9 +268,147 @@ const ERROR_MESSAGES = {
 
 ---
 
-## 6. API 확장 기능
+## 7. 이미지 관리
 
-### 6-1. Pagination (페이지네이션)
+Lucent Management는 **Cloudflare R2 - images 테이블 - 다른 테이블** 3계층 구조로 이미지를 관리한다.
+
+### 7-1. 구조 개요
+
+```
+Cloudflare R2 (실제 파일 저장)
+       ↓
+images 테이블 (메타데이터 + URL 관리)
+       ↓
+다른 테이블 (projects, artists, products 등)
+```
+
+### 7-2. 주요 특징
+
+- **중앙 집중식 관리**: 모든 이미지는 `images` 테이블에서 관리
+- **재사용 가능**: 하나의 이미지를 여러 곳에서 참조 가능
+- **확장성**: CDN, 썸네일, 리사이징 지원 (2차 확장)
+- **추적성**: 업로드 사용자, 용도, 생성일 기록
+- **안전성**: 이미지 삭제 시 연관 테이블은 SET NULL 처리
+
+### 7-3. 이미지 참조 방식
+
+| 테이블 | 이미지 컬럼 | 관계 | 설명 |
+|--------|-------------|------|------|
+| `projects` | `cover_image_id` | N:1 | 프로젝트 커버 이미지 |
+| `artists` | `profile_image_id` | N:1 | 아티스트 프로필 이미지 |
+| `products` | `main_image_id` | N:1 | 상품 메인 이미지 |
+| `product_images` | `image_id` | N:M | 상품 갤러리 이미지 (중간 테이블) |
+
+### 7-4. 이미지 업로드 플로우
+
+```
+[관리자] 이미지 선택
+    ↓
+[API] POST /api/images/upload
+    ↓
+[R2] 파일 저장
+    ↓
+[DB] images 테이블에 메타데이터 저장
+    ↓
+[응답] { imageId, publicUrl }
+    ↓
+[관리자] 상품/프로젝트 생성 시 imageId 사용
+```
+
+### 7-5. 파일 검증 규칙 (1차 MVP)
+
+- 형식: `image/jpeg`, `image/png`, `image/webp`
+- 크기: 최대 5MB
+- 해상도: 최대 4000x4000px (권장: 1920x1080px)
+- 업로드 권한: 관리자만
+
+📄 상세: `specs/api/images.md`
+
+---
+
+## 8. API 모듈별 개요
+
+### 8-1. 인증 (Auth)
+
+사용자 인증 및 세션 관리
+
+- 이메일/비밀번호 회원가입
+- 이메일 인증 (Nodemailer)
+- 로그인/로그아웃
+- 세션 관리 (JWT)
+- 비밀번호 재설정
+
+📄 상세: `specs/api/auth/`
+
+### 8-2. 프로필 (Profiles)
+
+사용자 프로필 정보 관리
+
+- 프로필 조회/수정
+- 이름, 연락처, 주소 관리
+- 주문 시 배송 정보 기본값 제공
+
+📄 상세: `specs/api/profiles/`
+
+### 8-3. 이미지 (Images)
+
+Cloudflare R2 기반 이미지 중앙 관리
+
+- 이미지 업로드 (관리자)
+- 이미지 메타데이터 관리
+- CDN 연동 (2차 확장)
+
+📄 상세: `specs/api/images.md`
+
+### 8-4. 프로젝트 (Projects)
+
+레이블 프로젝트 정보 제공
+
+- 프로젝트 목록/상세 조회
+- 커버 이미지 관리
+- 관련 아티스트 목록
+
+📄 상세: `specs/api/projects/`
+
+### 8-5. 아티스트 (Artists)
+
+버츄얼 아티스트 정보 제공
+
+- 아티스트 목록/상세 조회
+- 프로필 이미지 관리
+- 굿즈샵 테마 설정
+- 프로젝트 소속
+- 아티스트별 상품 조회
+
+📄 상세: `specs/api/artists/`
+
+### 8-6. 상품 (Products)
+
+굿즈 판매 및 관리
+
+- 상품 목록/상세 조회
+- 보이스팩 샘플 청취
+- 이미지 갤러리 (메인 + 추가 이미지)
+- 재고 관리
+
+📄 상세: `specs/api/products/`
+
+### 8-7. 주문 (Orders)
+
+주문 생성 및 관리
+
+- 주문 생성 (계좌이체)
+- 내 주문 목록/상세 조회
+- 디지털 상품 다운로드
+- 주문 상태 관리
+
+📄 상세: `specs/api/orders/`
+
+---
+
+## 9. API 확장 기능
+
+### 9-1. Pagination (페이지네이션)
 
 - 서버 API에서 기본 제공
 - **쿼리 파라미터**
@@ -157,7 +436,7 @@ const ERROR_MESSAGES = {
   - `page`와 `limit`을 queryKey에 포함
   - `keepPreviousData: true`로 페이지 전환 시 UI 유지
 
-### 6-2. Sorting (정렬)
+### 9-2. Sorting (정렬)
 
 - **쿼리 파라미터**
 
@@ -173,7 +452,7 @@ const ERROR_MESSAGES = {
   - table header 클릭 시 queryKey 변경
   - React Query 자동 refetch
 
-### 6-3. Filtering (필터링)
+### 9-3. Filtering (필터링)
 
 - **쿼리 파라미터**
 
@@ -189,7 +468,7 @@ const ERROR_MESSAGES = {
   - filter 객체를 queryKey 또는 service 인자로 전달
   - React Query의 `select` 옵션으로 데이터 변환 가능
 
-### 6-4. 설계 권장 원칙
+### 9-4. 설계 권장 원칙
 
 - Pagination / Sort / Filter 옵션은 **query string** 기반
 - 모든 목록 API는 가능한 한 **옵션 일관성** 유지

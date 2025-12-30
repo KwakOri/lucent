@@ -63,7 +63,50 @@
 
 ---
 
-## 5. UI 레이어 구조
+## 5. 아이콘 시스템
+
+본 프로젝트의 모든 아이콘은 **lucide-react**를 사용한다.
+
+### 5.1 lucide-react 사용 이유
+
+- 일관된 디자인 스타일
+- Tree-shaking 지원으로 번들 크기 최적화
+- TypeScript 완벽 지원
+- React 컴포넌트 기반으로 사용 간편
+
+### 5.2 사용 규칙
+
+✅ **올바른 사용**
+```tsx
+import { Search, ShoppingCart, User } from 'lucide-react'
+
+<Search className="w-5 h-5 text-[var(--color-text-secondary)]" />
+<ShoppingCart className="w-6 h-6 text-[var(--color-primary-500)]" />
+```
+
+❌ **잘못된 사용**
+- 다른 아이콘 라이브러리 혼용 금지
+- SVG 파일 직접 임포트 지양 (브랜드 로고 등 예외)
+- 이미지 태그로 아이콘 사용 금지
+
+### 5.3 아이콘 크기 가이드
+
+- 작은 아이콘: `w-4 h-4` (16px)
+- 기본 아이콘: `w-5 h-5` (20px)
+- 큰 아이콘: `w-6 h-6` (24px)
+- 특별히 큰 아이콘: `w-8 h-8` (32px)
+
+### 5.4 아이콘 색상
+
+아이콘 색상은 **테마 시스템의 텍스트 컬러**를 따른다:
+- 주요 아이콘: `text-[var(--color-text-primary)]`
+- 보조 아이콘: `text-[var(--color-text-secondary)]`
+- 비활성 아이콘: `text-[var(--color-text-muted)]`
+- 강조 아이콘: `text-[var(--color-primary-500)]`
+
+---
+
+## 6. UI 레이어 구조
 
 ```
 ui/
@@ -89,7 +132,7 @@ ui/
 
 ---
 
-## 6. Form & UI 책임 분리
+## 7. Form & UI 책임 분리
 
 - UI 컴포넌트는 **상태를 생성하지 않는다**.
 - Form 로직은 Page 또는 Feature 레벨에서 관리한다.
@@ -97,7 +140,7 @@ ui/
 
 ---
 
-## 7. 접근성 (Accessibility)
+## 8. 접근성 (Accessibility)
 
 - 키보드 사용 가능
 - 스크린 리더 인식 가능
@@ -107,7 +150,7 @@ ui/
 
 ---
 
-## 8. 에러 / 로딩 / Empty 상태 우선순위
+## 9. 에러 / 로딩 / Empty 상태 우선순위
 
 1. Loading
 2. Error
@@ -118,7 +161,7 @@ ui/
 
 ---
 
-## 9. 문서 활용 가이드
+## 10. 문서 활용 가이드
 
 - 본 문서는 **설계 기준 문서**이다.
 - 새로운 UI 추가 시 반드시 본 문서와 common 규칙을 따른다.

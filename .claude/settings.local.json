@@ -3,7 +3,10 @@
     "allow": [
       "Bash(npx create-next-app@latest:*)",
       "Bash(npx storybook@latest init:*)",
-      "Bash(npm install)"
+      "Bash(npm install)",
+      "Bash(cat:*)",
+      "Bash(npm install:*)",
+      "Bash(ls:*)"
     ]
   }
 }
