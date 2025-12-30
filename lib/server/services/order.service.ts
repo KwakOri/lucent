@@ -413,4 +413,125 @@ export class OrderService {
       total: count || 0,
     };
   }
+
+  /**
+   * 디지털 상품 다운로드 링크 생성
+   */
+  static async generateDownloadLink(
+    orderId: string,
+    itemId: string,
+    userId: string
+  ): Promise<{
+    downloadUrl: string;
+    expiresIn: number;
+    expiresAt: string;
+  }> {
+    const supabase = await createServerClient();
+
+    // 1. 주문 아이템 조회
+    const { data: orderItem, error: itemError } = await supabase
+      .from('order_items')
+      .select(
+        `
+        *,
+        order:orders (
+          id,
+          user_id,
+          status
+        ),
+        product:products (
+          id,
+          name,
+          type,
+          digital_file_url
+        )
+      `
+      )
+      .eq('id', itemId)
+      .eq('order_id', orderId)
+      .single();
+
+    if (itemError || !orderItem) {
+      throw new NotFoundError('주문 아이템을 찾을 수 없습니다', 'ORDER_ITEM_NOT_FOUND');
+    }
+
+    // 2. 권한 확인
+    const order = orderItem.order as any;
+    if (order.user_id !== userId) {
+      // 로그: 권한 없는 다운로드 시도
+      await LogService.logUnauthorizedDownload(
+        (orderItem.product as any).id,
+        userId,
+        undefined
+      );
+      throw new AuthorizationError('다운로드 권한이 없습니다');
+    }
+
+    // 3. 주문 상태 확인 (PAID 이상만 다운로드 가능)
+    const validStatuses: OrderStatus[] = ['PAID', 'MAKING', 'SHIPPING', 'DONE'];
+    if (!validStatuses.includes(order.status)) {
+      throw new ApiError(
+        '결제가 완료된 주문만 다운로드할 수 있습니다',
+        403,
+        'PAYMENT_NOT_COMPLETED'
+      );
+    }
+
+    // 4. 디지털 상품인지 확인
+    const product = orderItem.product as any;
+    if (product.type !== 'VOICE_PACK') {
+      throw new ApiError(
+        '디지털 상품만 다운로드할 수 있습니다',
+        400,
+        'NOT_DIGITAL_PRODUCT'
+      );
+    }
+
+    // 5. 디지털 파일 URL 확인
+    if (!product.digital_file_url) {
+      throw new ApiError(
+        '다운로드 가능한 파일이 없습니다',
+        404,
+        'DIGITAL_FILE_NOT_FOUND'
+      );
+    }
+
+    // 6. Presigned URL 생성 (R2)
+    const { generateSignedUrl } = await import('@/lib/server/utils/r2');
+
+    // R2 키 추출 (URL에서 경로 부분만)
+    const url = new URL(product.digital_file_url);
+    const r2Key = url.pathname.substring(1); // 맨 앞 '/' 제거
+
+    const expiresIn = 3600; // 1시간
+    const downloadUrl = await generateSignedUrl({
+      key: r2Key,
+      expiresIn,
+    });
+
+    // 7. 다운로드 횟수 증가
+    const newDownloadCount = (orderItem.download_count || 0) + 1;
+    await supabase
+      .from('order_items')
+      .update({ download_count: newDownloadCount })
+      .eq('id', itemId);
+
+    // 8. 로그 기록
+    await LogService.logDigitalProductDownload(
+      product.id,
+      orderId,
+      userId,
+      undefined,
+      {
+        productName: product.name,
+        downloadCount: newDownloadCount,
+      }
+    );
+
+    return {
+      downloadUrl,
+      expiresIn,
+      expiresAt: new Date(Date.now() + expiresIn * 1000).toISOString(),
+    };
+  }
 }
