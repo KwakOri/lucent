@@ -183,6 +183,75 @@ export type Database = {
         }
         Relationships: []
       }
+      logs: {
+        Row: {
+          admin_id: string | null
+          changes: Json | null
+          created_at: string | null
+          event_category: string
+          event_type: string
+          id: string
+          ip_address: unknown
+          message: string
+          metadata: Json | null
+          request_path: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          changes?: Json | null
+          created_at?: string | null
+          event_category: string
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          message: string
+          metadata?: Json | null
+          request_path?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          changes?: Json | null
+          created_at?: string | null
+          event_category?: string
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          message?: string
+          metadata?: Json | null
+          request_path?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
