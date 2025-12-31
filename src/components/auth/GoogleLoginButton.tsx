@@ -2,14 +2,14 @@
  * Google Login Button
  *
  * Google OAuth 로그인 버튼 컴포넌트
- * - Supabase Auth를 사용하여 Google OAuth 플로우 시작
+ * - Supabase Auth를 사용하여 Google OAuth 플로우 시작 (PKCE Flow)
  * - 로딩 상태 및 에러 처리
  */
 
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 
 export function GoogleLoginButton() {
   const [isLoading, setIsLoading] = useState(false);
@@ -20,7 +20,8 @@ export function GoogleLoginButton() {
     setError(null);
 
     try {
-      const supabase = createClient(
+      // PKCE Flow를 위한 Browser Client 생성
+      const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
       );
