@@ -107,7 +107,7 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div>
             {/* Product Type Badge */}
-            <Badge variant="default" className="mb-4">
+            <Badge intent="default" className="mb-4">
               {isVoicePack ? 'Voice Pack' : 'Physical Goods'}
             </Badge>
 
@@ -125,7 +125,7 @@ export default function ProductDetailPage() {
             {isPhysicalGoods && (
               <div className="mb-6">
                 {isOutOfStock ? (
-                  <Badge variant="error">품절</Badge>
+                  <Badge intent="error">품절</Badge>
                 ) : product.stock !== null ? (
                   <p className="text-sm text-text-secondary">
                     재고: {product.stock}개

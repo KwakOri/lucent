@@ -156,7 +156,7 @@ describe('Products API', () => {
           name: 'Test Voice Pack',
           description: 'Test description',
           price: 5000,
-          artist_id: 'miruru',
+          project_id: 'project-123',
           category: 'voice_pack',
         },
       });

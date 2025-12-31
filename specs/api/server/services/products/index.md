@@ -304,7 +304,7 @@ static async createProduct(
   const supabase = createServerClient();
 
   // 필수 필드 검증
-  if (!data.name || !data.artist_id) {
+  if (!data.name || !data.project_id) {
     throw new ApiError('필수 필드 누락', 400, 'INVALID_INPUT');
   }
 
@@ -316,7 +316,7 @@ static async createProduct(
     .from('products')
     .select('id')
     .eq('slug', slug)
-    .eq('artist_id', data.artist_id)
+    .eq('project_id', data.project_id)
     .single();
 
   if (existing) {

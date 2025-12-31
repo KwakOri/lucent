@@ -18,13 +18,13 @@ type ProductType = Enums<'product_type'>;
 // Order status config
 const ORDER_STATUS_CONFIG: Record<
   OrderStatus,
-  { label: string; variant: 'default' | 'success' | 'warning' | 'error' }
+  { label: string; intent: 'default' | 'success' | 'warning' | 'error' }
 > = {
-  PENDING: { label: '입금대기', variant: 'warning' },
-  PAID: { label: '입금확인', variant: 'default' },
-  MAKING: { label: '제작중', variant: 'warning' },
-  SHIPPING: { label: '발송중', variant: 'success' },
-  DONE: { label: '배송완료', variant: 'default' },
+  PENDING: { label: '입금대기', intent: 'warning' },
+  PAID: { label: '입금확인', intent: 'default' },
+  MAKING: { label: '제작중', intent: 'warning' },
+  SHIPPING: { label: '발송중', intent: 'success' },
+  DONE: { label: '배송완료', intent: 'default' },
 };
 
 export default function MyPage() {
@@ -149,7 +149,7 @@ export default function MyPage() {
                         })}
                       </p>
                     </div>
-                    <Badge variant={ORDER_STATUS_CONFIG[order.status].variant}>
+                    <Badge intent={ORDER_STATUS_CONFIG[order.status].intent}>
                       {ORDER_STATUS_CONFIG[order.status].label}
                     </Badge>
                   </div>

@@ -11,7 +11,7 @@ const badgeVariants = cva(
   ],
   {
     variants: {
-      variant: {
+      intent: {
         default: "bg-neutral-100 text-text-primary",
         success: "bg-success-100 text-success-600",
         warning: "bg-warning-100 text-warning-600",
@@ -24,7 +24,7 @@ const badgeVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
+      intent: "default",
       size: "sm",
     },
   }
@@ -56,23 +56,23 @@ export interface BadgeProps
  * @example
  * ```tsx
  * <Badge>일반</Badge>
- * <Badge variant="success">배송완료</Badge>
- * <Badge variant="warning">한정수량</Badge>
- * <Badge variant="error">품절</Badge>
- * <Badge variant="info">NEW</Badge>
- * <Badge variant="success" size="md">결제완료</Badge>
+ * <Badge intent="success">배송완료</Badge>
+ * <Badge intent="warning">한정수량</Badge>
+ * <Badge intent="error">품절</Badge>
+ * <Badge intent="info">NEW</Badge>
+ * <Badge intent="success" size="md">결제완료</Badge>
  * ```
  */
 export const Badge = ({
   className,
-  variant,
+  intent,
   size,
   children,
   ...props
 }: BadgeProps) => {
   return (
     <span
-      className={clsx(badgeVariants({ variant, size }), className)}
+      className={clsx(badgeVariants({ intent, size }), className)}
       {...props}
     >
       {children}
