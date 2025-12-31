@@ -19,7 +19,9 @@
       "Bash({} ;)",
       "Bash(npm run dev:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git revert:*)",
+      "Bash(git reset:*)"
     ]
   }
 }

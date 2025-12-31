@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { FormField } from '@/components/ui/form-field';
+import { Input, Textarea } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export interface ShippingInfo {
@@ -107,46 +108,67 @@ export function ShippingForm({
 
       <FormField
         label="수령인"
-        name="shippingName"
+        htmlFor="shippingName"
         required
-        placeholder="받으실 분의 이름을 입력하세요"
-        value={values.name}
-        onChange={(e) => handleChange('name', e.target.value)}
         error={errors.name}
-      />
+      >
+        <Input
+          id="shippingName"
+          name="shippingName"
+          placeholder="받으실 분의 이름을 입력하세요"
+          value={values.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+          error={!!errors.name}
+        />
+      </FormField>
 
       <FormField
         label="연락처"
-        name="shippingPhone"
-        type="tel"
+        htmlFor="shippingPhone"
         required
-        placeholder="010-0000-0000"
-        value={values.phone}
-        onChange={(e) => handleChange('phone', e.target.value)}
         error={errors.phone}
-      />
+      >
+        <Input
+          id="shippingPhone"
+          name="shippingPhone"
+          type="tel"
+          placeholder="010-0000-0000"
+          value={values.phone}
+          onChange={(e) => handleChange('phone', e.target.value)}
+          error={!!errors.phone}
+        />
+      </FormField>
 
       <FormField
         label="배송 주소"
-        name="shippingAddress"
+        htmlFor="shippingAddress"
         required
-        placeholder="상세 주소를 입력하세요"
-        value={values.address}
-        onChange={(e) => handleChange('address', e.target.value)}
         error={errors.address}
-        multiline
-        rows={3}
-      />
+      >
+        <Textarea
+          id="shippingAddress"
+          name="shippingAddress"
+          placeholder="상세 주소를 입력하세요"
+          value={values.address}
+          onChange={(e) => handleChange('address', e.target.value)}
+          error={!!errors.address}
+          rows={3}
+        />
+      </FormField>
 
       <FormField
         label="배송 메모"
-        name="shippingMemo"
-        placeholder="배송 시 요청사항을 입력하세요 (선택)"
-        value={values.memo}
-        onChange={(e) => handleChange('memo', e.target.value)}
-        multiline
-        rows={2}
-      />
+        htmlFor="shippingMemo"
+      >
+        <Textarea
+          id="shippingMemo"
+          name="shippingMemo"
+          placeholder="배송 시 요청사항을 입력하세요 (선택)"
+          value={values.memo}
+          onChange={(e) => handleChange('memo', e.target.value)}
+          rows={2}
+        />
+      </FormField>
     </div>
   );
 }

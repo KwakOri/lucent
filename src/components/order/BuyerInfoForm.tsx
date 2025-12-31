@@ -8,6 +8,7 @@
 
 import { useState } from 'react';
 import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
 
 export interface BuyerInfo {
   name: string;
@@ -75,35 +76,53 @@ export function BuyerInfoForm({
 
       <FormField
         label="이름"
-        name="buyerName"
+        htmlFor="buyerName"
         required
-        placeholder="이름을 입력하세요"
-        value={value.name}
-        onChange={(e) => handleChange('name', e.target.value)}
         error={errors.name}
-      />
+      >
+        <Input
+          id="buyerName"
+          name="buyerName"
+          placeholder="이름을 입력하세요"
+          value={value.name}
+          onChange={(e) => handleChange('name', e.target.value)}
+          error={!!errors.name}
+        />
+      </FormField>
 
       <FormField
         label="이메일"
-        name="buyerEmail"
-        type="email"
+        htmlFor="buyerEmail"
         required
-        placeholder="email@example.com"
-        value={value.email}
-        onChange={(e) => handleChange('email', e.target.value)}
         error={errors.email}
-      />
+      >
+        <Input
+          id="buyerEmail"
+          name="buyerEmail"
+          type="email"
+          placeholder="email@example.com"
+          value={value.email}
+          onChange={(e) => handleChange('email', e.target.value)}
+          error={!!errors.email}
+        />
+      </FormField>
 
       <FormField
         label="연락처"
-        name="buyerPhone"
-        type="tel"
+        htmlFor="buyerPhone"
         required
-        placeholder="010-0000-0000"
-        value={value.phone}
-        onChange={(e) => handleChange('phone', e.target.value)}
         error={errors.phone}
-      />
+      >
+        <Input
+          id="buyerPhone"
+          name="buyerPhone"
+          type="tel"
+          placeholder="010-0000-0000"
+          value={value.phone}
+          onChange={(e) => handleChange('phone', e.target.value)}
+          error={!!errors.phone}
+        />
+      </FormField>
     </div>
   );
 }
