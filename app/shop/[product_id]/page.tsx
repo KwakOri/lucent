@@ -15,11 +15,10 @@ export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.product_id as string;
 
-  const { data: productData, isLoading, error } = useProduct(productId);
+  const { data: product, isLoading, error } = useProduct(productId);
   const { mutate: playSample, isPending: isPlaying } = usePlaySample();
   const [isPlayingSample, setIsPlayingSample] = useState(false);
 
-  const product = productData?.data;
   const isVoicePack = product?.type === 'VOICE_PACK';
   const isPhysicalGoods = product?.type === 'PHYSICAL_GOODS';
 
