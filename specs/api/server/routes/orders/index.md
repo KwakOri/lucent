@@ -419,13 +419,13 @@ export async function GET(request: NextRequest) {
 ### 7.1 배송 정보 조회
 
 ```
-GET /api/orders/:orderId/items/:itemId/shipment
+GET /api/orders/:id/items/:itemId/shipment
 ```
 
 **인증**: 필수 (본인 주문만)
 
 **Path Parameters**:
-- `orderId`: 주문 ID (UUID)
+- `id`: 주문 ID (UUID)
 - `itemId`: 주문 항목 ID (UUID)
 
 **Response (200 OK)**:
@@ -463,7 +463,7 @@ GET /api/orders/:orderId/items/:itemId/shipment
 ### 7.2 구현 예시
 
 ```ts
-// app/api/orders/[orderId]/items/[itemId]/shipment/route.ts
+// app/api/orders/[id]/items/[itemId]/shipment/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { OrderService } from '@/lib/server/services/order.service';
 import { getSession } from '@/lib/server/utils/auth';

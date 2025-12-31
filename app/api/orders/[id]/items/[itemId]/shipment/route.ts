@@ -1,7 +1,7 @@
 /**
  * 배송 추적 정보 조회 API
  *
- * GET /api/orders/:orderId/items/:itemId/shipment
+ * GET /api/orders/:id/items/:itemId/shipment
  *
  * 고객이 자신의 주문 상품에 대한 배송 추적 정보를 조회합니다.
  */
@@ -13,11 +13,11 @@ import { handleApiError } from '@/lib/server/utils/api-response';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orderId: string; itemId: string }> }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     // params await (Next.js 15)
-    const { orderId, itemId } = await params;
+    const { id, itemId } = await params;
 
     // 인증 확인
     const supabase = await createServerClient();
