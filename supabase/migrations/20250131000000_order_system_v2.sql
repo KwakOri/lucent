@@ -122,7 +122,8 @@ END $$;
 -- =====================================================
 
 -- shipments updated_at trigger
-CREATE TRIGGER IF NOT EXISTS update_shipments_updated_at
+DROP TRIGGER IF EXISTS update_shipments_updated_at ON shipments;
+CREATE TRIGGER update_shipments_updated_at
     BEFORE UPDATE ON shipments
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
