@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const { email, verificationToken } = body;
 
     // 1. 입력 검증
-    if (!email || !verificationToken) {
-      return handleApiError(new Error('이메일과 인증 토큰이 필요합니다'), 400);
+    if (!verificationToken) {
+      return handleApiError(new Error('인증 토큰이 필요합니다'), 400);
     }
 
     // 2. 검증된 인증 레코드 조회
@@ -32,10 +32,13 @@ export async function POST(request: NextRequest) {
       return handleApiError(new Error('유효하지 않은 인증 토큰입니다'), 400);
     }
 
-    // 이메일 일치 확인
-    if (verification.email !== email) {
+    // 이메일 일치 확인 (email이 제공된 경우에만)
+    if (email && verification.email !== email) {
       return handleApiError(new Error('이메일이 일치하지 않습니다'), 400);
     }
+
+    // 토큰에서 이메일 추출 (email이 제공되지 않은 경우)
+    const userEmail = email || verification.email;
 
     // 3. Supabase 클라이언트 생성
     const supabase = await createServerClient();
@@ -92,8 +95,8 @@ export async function POST(request: NextRequest) {
       category: 'auth',
       action: 'signup',
       user_id: authData.user.id,
-      description: `회원가입 성공: ${email}`,
-      metadata: { email },
+      description: `회원가입 성공: ${userEmail}`,
+      metadata: { email: userEmail },
       ip_address: clientIp,
     });
 

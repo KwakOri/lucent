@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirm, setPasswordConfirm] = useState('');
@@ -23,6 +24,16 @@ export default function SignupPage() {
     general?: string;
   }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // URL 파라미터에서 에러 메시지 처리
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const message = searchParams.get('message');
+
+    if (error && message) {
+      setErrors({ general: message });
+    }
+  }, [searchParams]);
 
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
@@ -68,7 +79,8 @@ export default function SignupPage() {
     setErrors({});
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      // 인증 코드 발송 API 호출
+      const response = await fetch('/api/auth/send-verification', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,13 +92,13 @@ export default function SignupPage() {
 
       if (!response.ok) {
         setErrors({
-          general: data.error || '회원가입 중 오류가 발생했습니다',
+          general: data.error || '인증 코드 발송에 실패했습니다',
         });
         return;
       }
 
-      // Signup successful - redirect to login or home
-      router.push('/login');
+      // 성공 시 이메일 인증 페이지로 이동
+      router.push(`/signup/verify-email?email=${encodeURIComponent(email)}`);
     } catch (error) {
       setErrors({ general: '네트워크 오류가 발생했습니다. 다시 시도해주세요.' });
     } finally {
@@ -213,14 +225,14 @@ export default function SignupPage() {
               )}
             </div>
 
-            {/* Signup Button */}
+            {/* Send Verification Button */}
             <Button
               type="submit"
               intent="primary"
               fullWidth
               loading={isSubmitting}
             >
-              {isSubmitting ? '가입 중...' : '회원가입'}
+              {isSubmitting ? '발송 중...' : '인증 코드 발송'}
             </Button>
           </form>
 
