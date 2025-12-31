@@ -18,7 +18,7 @@ import type {
  * 상품 목록 조회 Hook
  *
  * @example
- * const { data, isLoading } = useProducts({ artistId: 'miruru', type: 'voice_pack' });
+ * const { data, isLoading } = useProducts({ projectId: 'project-id', type: 'VOICE_PACK' });
  */
 export function useProducts(params?: GetProductsQuery) {
   return useQuery({
@@ -106,22 +106,22 @@ export function usePlaySample() {
 }
 
 /**
- * 미루루 상품 목록 조회 Hook (편의 함수)
+ * 프로젝트별 상품 목록 조회 Hook (편의 함수)
  *
  * @example
- * const { voicePacks, physicalGoods, isLoading } = useMiruruProducts();
+ * const { voicePacks, physicalGoods, isLoading } = useMiruruProducts('project-id');
  */
-export function useMiruruProducts() {
+export function useMiruruProducts(projectId?: string) {
   const { data, isLoading, error } = useProducts({
-    artistId: 'miruru',
+    projectId,
     isActive: 'true',
   });
 
   const products = data?.data || [];
 
   // 타입별로 분리
-  const voicePacks = products.filter((p) => p.type === 'voice_pack');
-  const physicalGoods = products.filter((p) => p.type === 'physical');
+  const voicePacks = products.filter((p) => p.type === 'VOICE_PACK');
+  const physicalGoods = products.filter((p) => p.type === 'PHYSICAL_GOODS');
 
   return {
     voicePacks,

@@ -50,7 +50,7 @@ export interface UpdateProductRequest extends TablesUpdate<'products'> {}
 export interface GetProductsQuery {
   page?: string;
   limit?: string;
-  artistId?: string;
+  projectId?: string;
   type?: Enums<'product_type'>;
   isActive?: string;
   sortBy?: 'created_at' | 'price' | 'name';
