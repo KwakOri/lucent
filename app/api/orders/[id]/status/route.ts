@@ -10,10 +10,8 @@ import { AuthService } from '@/lib/server/services/auth.service';
 import {
   handleApiError,
   successResponse,
-  unauthorizedResponse,
-  forbiddenResponse,
-  badRequestResponse,
 } from '@/lib/server/utils/api-response';
+import { ApiError } from '@/lib/server/utils/errors';
 import type { Enums } from '@/types';
 
 /**
@@ -28,13 +26,13 @@ export async function PATCH(
     // 1. 인증 확인
     const user = await AuthService.getCurrentUser();
     if (!user) {
-      return unauthorizedResponse('로그인이 필요합니다');
+      throw new ApiError('로그인이 필요합니다', 401);
     }
 
     // 2. 관리자 권한 확인
     const isAdmin = await AuthService.isAdmin(user.id);
     if (!isAdmin) {
-      return forbiddenResponse('관리자만 접근 가능합니다');
+      throw new ApiError('관리자만 접근 가능합니다', 403);
     }
 
     // 3. 파라미터 파싱
@@ -44,7 +42,7 @@ export async function PATCH(
 
     // 4. 유효성 검증
     if (!status) {
-      return badRequestResponse('상태값이 필요합니다');
+      throw new ApiError('상태값이 필요합니다', 400);
     }
 
     const validStatuses: Enums<'order_status'>[] = [
@@ -56,8 +54,9 @@ export async function PATCH(
     ];
 
     if (!validStatuses.includes(status)) {
-      return badRequestResponse(
-        `유효하지 않은 상태값입니다. 가능한 값: ${validStatuses.join(', ')}`
+      throw new ApiError(
+        `유효하지 않은 상태값입니다. 가능한 값: ${validStatuses.join(', ')}`,
+        400
       );
     }
 

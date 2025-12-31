@@ -7,7 +7,6 @@
 import { NextRequest } from 'next/server';
 import {
   successResponse,
-  badRequestResponse,
   handleApiError
 } from '@/lib/server/utils/api-response';
 import { ApiError } from '@/lib/server/utils/errors';
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
     const size = searchParams.get('size') || '10';
 
     if (!query || query.trim().length === 0) {
-      return badRequestResponse('검색어를 입력해주세요');
+      throw new ApiError('검색어를 입력해주세요', 400);
     }
 
     const apiKey = process.env.KAKAO_REST_API_KEY;
