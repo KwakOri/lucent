@@ -3,12 +3,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ImageUpload } from '@/src/components/admin/ImageUpload';
 
 interface Project {
   id: string;
   name: string;
   slug: string;
   cover_image_id: string;
+  cover_image?: {
+    id: string;
+    public_url: string;
+    cdn_url?: string;
+  } | null;
   description?: string;
   release_date?: string;
   external_links?: {
@@ -115,23 +121,20 @@ export function ProjectForm({ project }: ProjectFormProps) {
           </div>
         </div>
 
-        {/* 커버 이미지 ID (임시) */}
+        {/* 커버 이미지 */}
         <div>
-          <label htmlFor="cover_image_id" className="block text-sm font-medium leading-6 text-gray-900">
-            커버 이미지 ID <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="cover_image_id"
-            required
-            value={formData.cover_image_id}
-            onChange={(e) => setFormData({ ...formData, cover_image_id: e.target.value })}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
-            placeholder="이미지 UUID"
+          <ImageUpload
+            imageType="project_cover"
+            label="커버 이미지"
+            currentImageUrl={
+              project?.cover_image?.cdn_url ||
+              project?.cover_image?.public_url
+            }
+            altText={formData.name}
+            onUploadSuccess={(imageId, publicUrl) => {
+              setFormData({ ...formData, cover_image_id: imageId });
+            }}
           />
-          <p className="mt-1 text-sm text-gray-500">
-            이미지 업로드 기능은 추후 구현됩니다
-          </p>
         </div>
 
         {/* 설명 */}

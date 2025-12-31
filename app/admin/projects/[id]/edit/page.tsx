@@ -7,7 +7,14 @@ async function getProject(id: string) {
 
   const { data: project } = await supabase
     .from('projects')
-    .select('*')
+    .select(`
+      *,
+      cover_image:images!cover_image_id (
+        id,
+        public_url,
+        cdn_url
+      )
+    `)
     .eq('id', id)
     .single();
 

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ImageUpload } from '@/src/components/admin/ImageUpload';
 
 interface Artist {
   id: string;
@@ -17,6 +18,11 @@ interface Product {
   type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
   artist_id: string;
   main_image_id: string;
+  main_image?: {
+    id: string;
+    public_url: string;
+    cdn_url?: string;
+  } | null;
   price: number;
   description?: string;
   stock?: number | null;
@@ -166,23 +172,20 @@ export function ProductForm({ artists, product }: ProductFormProps) {
           />
         </div>
 
-        {/* 메인 이미지 ID (임시) */}
+        {/* 메인 이미지 */}
         <div>
-          <label htmlFor="main_image_id" className="block text-sm font-medium leading-6 text-gray-900">
-            메인 이미지 ID <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="main_image_id"
-            required
-            value={formData.main_image_id}
-            onChange={(e) => setFormData({ ...formData, main_image_id: e.target.value })}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
-            placeholder="이미지 UUID"
+          <ImageUpload
+            imageType="product_main"
+            label="메인 이미지"
+            currentImageUrl={
+              product?.main_image?.cdn_url ||
+              product?.main_image?.public_url
+            }
+            altText={formData.name}
+            onUploadSuccess={(imageId, publicUrl) => {
+              setFormData({ ...formData, main_image_id: imageId });
+            }}
           />
-          <p className="mt-1 text-sm text-gray-500">
-            이미지 업로드 기능은 추후 구현됩니다
-          </p>
         </div>
 
         {/* 가격 */}

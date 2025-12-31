@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ImageUpload } from '@/src/components/admin/ImageUpload';
 
 interface Project {
   id: string;
@@ -16,6 +17,11 @@ interface Artist {
   slug: string;
   project_id: string;
   profile_image_id: string;
+  profile_image?: {
+    id: string;
+    public_url: string;
+    cdn_url?: string;
+  } | null;
   description?: string;
   is_active: boolean;
 }
@@ -131,23 +137,20 @@ export function ArtistForm({ projects, artist }: ArtistFormProps) {
           </select>
         </div>
 
-        {/* 프로필 이미지 ID (임시) */}
+        {/* 프로필 이미지 */}
         <div>
-          <label htmlFor="profile_image_id" className="block text-sm font-medium leading-6 text-gray-900">
-            프로필 이미지 ID <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="profile_image_id"
-            required
-            value={formData.profile_image_id}
-            onChange={(e) => setFormData({ ...formData, profile_image_id: e.target.value })}
-            className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
-            placeholder="이미지 UUID"
+          <ImageUpload
+            imageType="artist_profile"
+            label="프로필 이미지"
+            currentImageUrl={
+              artist?.profile_image?.cdn_url ||
+              artist?.profile_image?.public_url
+            }
+            altText={formData.name}
+            onUploadSuccess={(imageId, publicUrl) => {
+              setFormData({ ...formData, profile_image_id: imageId });
+            }}
           />
-          <p className="mt-1 text-sm text-gray-500">
-            이미지 업로드 기능은 추후 구현됩니다
-          </p>
         </div>
 
         {/* 설명 */}

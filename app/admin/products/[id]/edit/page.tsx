@@ -7,7 +7,14 @@ async function getProduct(id: string) {
 
   const { data: product } = await supabase
     .from('products')
-    .select('*')
+    .select(`
+      *,
+      main_image:images!main_image_id (
+        id,
+        public_url,
+        cdn_url
+      )
+    `)
     .eq('id', id)
     .single();
 

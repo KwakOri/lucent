@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageService } from '@/lib/server/services/image.service';
-import { getCurrentUser } from '@/lib/server/utils/supabase';
+import { getCurrentUser, isAdmin } from '@/lib/server/utils/supabase';
 import { handleApiError, successResponse, errorResponse } from '@/lib/server/utils/api-response';
 
 export async function POST(request: NextRequest) {
@@ -19,12 +19,13 @@ export async function POST(request: NextRequest) {
       return errorResponse('로그인이 필요합니다', 401, 'UNAUTHENTICATED');
     }
 
-    // TODO: 관리자 권한 확인 (현재는 모든 로그인 사용자 허용)
-    // if (!user.isAdmin) {
-    //   return errorResponse('관리자 권한이 필요합니다', 403, 'ADMIN_REQUIRED');
-    // }
+    // 2. 관리자 권한 확인
+    const adminCheck = await isAdmin();
+    if (!adminCheck) {
+      return errorResponse('관리자 권한이 필요합니다', 403, 'ADMIN_REQUIRED');
+    }
 
-    // 2. FormData 파싱
+    // 3. FormData 파싱
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const imageType = formData.get('image_type') as
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       | 'product_gallery';
     const altText = formData.get('alt_text') as string | undefined;
 
-    // 3. 필수 필드 확인
+    // 4. 필수 필드 확인
     if (!file) {
       return errorResponse('파일이 제공되지 않았습니다', 400, 'FILE_REQUIRED');
     }
@@ -48,7 +49,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('유효하지 않은 image_type입니다', 400, 'INVALID_IMAGE_TYPE');
     }
 
-    // 4. 이미지 업로드
+    // 5. 이미지 업로드
     const image = await ImageService.uploadImage({
       file,
       imageType,

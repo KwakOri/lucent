@@ -7,7 +7,14 @@ async function getArtist(id: string) {
 
   const { data: artist } = await supabase
     .from('artists')
-    .select('*')
+    .select(`
+      *,
+      profile_image:images!profile_image_id (
+        id,
+        public_url,
+        cdn_url
+      )
+    `)
     .eq('id', id)
     .single();
 

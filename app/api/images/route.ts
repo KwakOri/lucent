@@ -8,7 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ImageService } from '@/lib/server/services/image.service';
-import { getCurrentUser } from '@/lib/server/utils/supabase';
+import { getCurrentUser, isAdmin } from '@/lib/server/utils/supabase';
 import { handleApiError, successResponse, errorResponse } from '@/lib/server/utils/api-response';
 
 export async function GET(request: NextRequest) {
@@ -19,12 +19,13 @@ export async function GET(request: NextRequest) {
       return errorResponse('로그인이 필요합니다', 401, 'UNAUTHENTICATED');
     }
 
-    // TODO: 관리자 권한 확인
-    // if (!user.isAdmin) {
-    //   return errorResponse('관리자 권한이 필요합니다', 403, 'ADMIN_REQUIRED');
-    // }
+    // 2. 관리자 권한 확인
+    const adminCheck = await isAdmin();
+    if (!adminCheck) {
+      return errorResponse('관리자 권한이 필요합니다', 403, 'ADMIN_REQUIRED');
+    }
 
-    // 2. Query Parameters 파싱
+    // 3. Query Parameters 파싱
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     const isActiveParam = searchParams.get('is_active');
     const isActive = isActiveParam ? isActiveParam === 'true' : undefined;
 
-    // 3. 이미지 목록 조회
+    // 4. 이미지 목록 조회
     const result = await ImageService.getImages({
       page,
       limit,
