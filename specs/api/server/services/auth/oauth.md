@@ -122,29 +122,30 @@ static async handleOAuthCallback(
     };
   }
 
-  // 2. 이메일로 기존 프로필 확인 (계정 연결 케이스)
+  // 2. 이메일 중복 확인 (보안: 자동 연결 방지)
   if (user.email) {
     const emailProfile = await this.findProfileByEmail(user.email);
 
     if (emailProfile) {
       // 동일 이메일로 이미 가입된 계정 존재
-      // → 기존 프로필 사용 (자동 연결)
+      // 보안상의 이유로 자동 연결하지 않음 (Pre-Account Takeover 방지)
       await LogService.log({
         eventCategory: 'auth',
-        eventType: 'oauth_account_linked',
-        message: 'Google OAuth 계정 자동 연결 (동일 이메일)',
+        eventType: 'oauth_email_conflict',
+        message: 'Google OAuth 이메일 중복 - 기존 계정 존재',
         userId: user.id,
         metadata: {
           email: user.email,
           existingProfileId: emailProfile.id,
         },
+        severity: 'warning',
       });
 
-      return {
-        user,
-        profile: emailProfile,
-        isNewUser: false,
-      };
+      throw new ApiError(
+        '이미 가입된 이메일입니다. 기존 계정으로 로그인하세요.',
+        409,
+        'EMAIL_ALREADY_EXISTS'
+      );
     }
   }
 
@@ -173,8 +174,9 @@ static async handleOAuthCallback(
 
 **동작 순서**:
 1. `profiles.id`로 기존 프로필 검색
-2. 없으면 `profiles.email`로 검색 (계정 연결)
-3. 없으면 신규 프로필 생성
+2. 없으면 `profiles.email`로 중복 확인 (보안)
+   - 중복이면 에러 반환 (자동 연결하지 않음)
+3. 중복 없으면 신규 프로필 생성
 
 **반환값**:
 - `user`: Supabase auth 사용자
@@ -299,10 +301,11 @@ static async findProfileByEmail(email: string): Promise<Profile | null> {
 - `email`, `name`은 Google에서 가져옴
 - `phone`, `address`는 null (추후 마이페이지에서 입력)
 
-**기존 이메일 사용자**:
-- 동일 이메일로 OAuth 로그인 시도 시
-- 기존 프로필 사용 (auth.users는 별도 존재 가능)
-- profiles.email 기준으로 사용자 식별
+**이메일 중복 처리 (보안 정책)**:
+- 동일 이메일로 이미 가입된 계정이 있으면 **에러 반환**
+- 자동 계정 연결하지 않음 (Pre-Account Takeover 공격 방지)
+- 사용자에게 기존 계정으로 로그인하도록 안내
+- 향후 로그인 후 설정에서 수동으로 계정 연결 기능 제공 예정
 
 ### 4.2 프로필 업데이트 정책
 
@@ -386,18 +389,19 @@ await LogService.log({
 });
 ```
 
-### 6.3 계정 자동 연결
+### 6.3 이메일 중복 감지
 
 ```ts
 await LogService.log({
   eventCategory: 'auth',
-  eventType: 'oauth_account_linked',
-  message: 'Google OAuth 계정 자동 연결 (동일 이메일)',
+  eventType: 'oauth_email_conflict',
+  message: 'Google OAuth 이메일 중복 - 기존 계정 존재',
   userId: user.id,
   metadata: {
     email: user.email,
-    existingProfileId: profile.id,
+    existingProfileId: emailProfile.id,
   },
+  severity: 'warning',
 });
 ```
 
@@ -552,6 +556,117 @@ const oauthUser: User = {
 
 - Supabase 클라이언트가 자동으로 파라미터 이스케이핑
 - 직접 SQL 쿼리 사용 금지
+
+### 9.4 Pre-Account Takeover (계정 탈취) 방지 ⭐
+
+**공격 시나리오**:
+
+1. 공격자가 피해자의 이메일 주소를 알아냄 (`victim@example.com`)
+2. 피해자가 아직 해당 서비스에 가입하지 않은 상태
+3. 공격자가 피해자의 이메일로 OAuth(Google) 가입을 시도
+4. **만약 자동으로 이메일이 연결되면**: 공격자가 피해자 이메일로 계정 생성 성공
+5. 피해자가 나중에 해당 이메일로 가입하려고 하면 "이미 가입된 이메일"이라는 메시지를 받음
+6. 피해자는 비밀번호를 모르므로 "비밀번호 재설정"을 시도
+7. **피해자의 이메일함에 접근 가능**하다면 계정 탈취 성공
+
+**방어 전략 (현재 구현)**:
+
+```ts
+// lib/server/services/oauth.service.ts
+
+// ✅ 이메일 중복 체크 - 자동 연결하지 않음
+if (user.email) {
+  const emailProfile = await this.findProfileByEmail(user.email);
+
+  if (emailProfile) {
+    // 🚫 자동으로 계정 연결하지 않음
+    await LogService.log({
+      eventCategory: 'auth',
+      eventType: 'oauth_email_conflict',
+      message: 'Google OAuth 이메일 중복 - 기존 계정 존재',
+      userId: user.id,
+      metadata: {
+        email: user.email,
+        existingProfileId: emailProfile.id,
+      },
+      severity: 'warning',
+    });
+
+    throw new ApiError(
+      '이미 가입된 이메일입니다. 기존 계정으로 로그인하세요.',
+      409,
+      'EMAIL_ALREADY_EXISTS'
+    );
+  }
+}
+```
+
+**왜 자동 연결하지 않는가?**
+
+| 정책 | 장점 | 단점 |
+|------|------|------|
+| **자동 연결 금지** (현재) | - Pre-Account Takeover 공격 방지<br>- 사용자 의도 명확화<br>- 보안 로그 기록 가능 | - 사용자 불편 (이메일/OAuth 따로 가입 불가)<br>- 수동 계정 연결 필요 |
+| 자동 연결 허용 | - 사용자 편의성 향상<br>- 매끄러운 UX | - **계정 탈취 위험**<br>- 의도하지 않은 계정 연결 |
+
+**추가 방어 레이어**:
+
+1. **이메일 인증 확인** (Supabase 자동 처리)
+   ```ts
+   // Google OAuth는 항상 검증된 이메일 제공
+   if (!user.email_verified) {
+     throw new ApiError('이메일 인증이 필요합니다', 403);
+   }
+   ```
+
+2. **로그 모니터링**
+   - `oauth_email_conflict` 이벤트 발생 시 알림
+   - 같은 이메일로 반복 시도 시 Rate Limiting
+   - 의심스러운 IP에서의 다량 OAuth 시도 감지
+
+3. **향후 확장: 수동 계정 연결**
+   ```ts
+   // 사용자가 로그인 후 설정 페이지에서 수동으로 OAuth 연결
+   async linkOAuthAccount(userId: string, oauthProvider: OAuthProvider) {
+     // 1. 현재 로그인한 사용자 확인
+     // 2. 해당 OAuth 계정의 이메일이 일치하는지 확인
+     // 3. 사용자 동의 후 연결
+     // 4. 로그 기록: 'oauth_account_linked'
+   }
+   ```
+
+**실제 사례**:
+
+```
+시나리오 A (안전):
+1. 사용자가 이메일 회원가입: user@gmail.com
+2. 나중에 Google OAuth로 로그인 시도 (동일 이메일)
+3. ✅ 에러 발생: "이미 가입된 이메일입니다. 기존 계정으로 로그인하세요."
+4. 사용자는 이메일/비밀번호로 로그인
+5. (향후) 설정에서 Google 계정 연결 가능
+
+시나리오 B (공격 차단):
+1. 공격자가 victim@gmail.com으로 이메일 회원가입 시도
+2. 이메일 인증 메일이 피해자에게 전송됨
+3. 피해자는 인증 링크를 클릭하지 않음 → 계정 활성화 안 됨
+4. 공격자는 로그인 불가
+5. ✅ 공격 실패
+
+시나리오 C (공격 시도 - 방어 성공):
+1. 공격자가 victim@gmail.com으로 Google OAuth 가입 시도
+2. Google에서 인증됨 (공격자의 Google 계정 이메일이 아님)
+3. ❌ 불가능: Google OAuth는 인증된 사용자의 이메일만 제공
+4. 공격자는 자신의 이메일로만 OAuth 가입 가능
+5. ✅ 공격 불가능
+```
+
+**결론**:
+
+현재 구현은 **보안을 우선**하여 자동 계정 연결을 허용하지 않습니다. 사용자 편의성은 약간 떨어지지만, 계정 탈취 위험을 원천 차단합니다.
+
+**향후 개선 방향**:
+- 로그인 후 설정 페이지에서 수동 OAuth 계정 연결 기능 제공
+- 이메일/비밀번호 계정과 OAuth 계정을 안전하게 통합
+- 사용자가 직접 제어하는 계정 연결 플로우 제공
 
 ---
 
