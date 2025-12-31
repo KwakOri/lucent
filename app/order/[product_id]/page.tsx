@@ -54,7 +54,7 @@ export default function CheckoutPage() {
   }, [user]);
 
   const isPhysicalGoods = product?.type === 'PHYSICAL_GOODS';
-  const isOutOfStock = product?.stock !== null && product.stock <= 0;
+  const isOutOfStock = product ? product.stock !== null && product.stock <= 0 : false;
 
   // 배송비 (향후 동적 계산 가능)
   const shippingFee = isPhysicalGoods ? 3000 : 0;
