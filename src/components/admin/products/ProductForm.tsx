@@ -52,6 +52,10 @@ export function ProductForm({ projects, product }: ProductFormProps) {
     is_active: product?.is_active ?? true,
   });
 
+  // 보이스팩 파일 상태
+  const [mainFile, setMainFile] = useState<File | null>(null);
+  const [sampleFile, setSampleFile] = useState<File | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -63,13 +67,45 @@ export function ProductForm({ projects, product }: ProductFormProps) {
 
       const method = product ? 'PATCH' : 'POST';
 
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      let response: Response;
+
+      // 보이스팩 타입: FormData로 파일 업로드
+      if (formData.type === 'VOICE_PACK' && !product) {
+        // 신규 생성 시에만 파일 업로드
+        if (!mainFile) {
+          throw new Error('보이스팩 파일은 필수입니다');
+        }
+
+        const formDataToSend = new FormData();
+        formDataToSend.append('name', formData.name);
+        formDataToSend.append('slug', formData.slug);
+        formDataToSend.append('type', formData.type);
+        formDataToSend.append('artistId', formData.project_id); // TODO: artist_id 별도 필드 필요
+        formDataToSend.append('projectId', formData.project_id);
+        formDataToSend.append('price', formData.price.toString());
+        if (formData.description) {
+          formDataToSend.append('description', formData.description);
+        }
+        formDataToSend.append('mainFile', mainFile);
+        if (sampleFile) {
+          formDataToSend.append('sampleFile', sampleFile);
+        }
+
+        response = await fetch(url, {
+          method,
+          body: formDataToSend,
+          // Content-Type은 브라우저가 자동으로 설정 (boundary 포함)
+        });
+      } else {
+        // 일반 상품 또는 수정: JSON
+        response = await fetch(url, {
+          method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+      }
 
       if (!response.ok) {
         const error = await response.json();
@@ -227,20 +263,69 @@ export function ProductForm({ projects, product }: ProductFormProps) {
           </div>
         )}
 
-        {/* 샘플 오디오 URL (보이스팩만) */}
-        {formData.type === 'VOICE_PACK' && (
+        {/* 보이스팩 파일 업로드 */}
+        {formData.type === 'VOICE_PACK' && !product && (
+          <>
+            {/* 메인 파일 (필수) */}
+            <div>
+              <label htmlFor="mainFile" className="block text-sm font-medium leading-6 text-gray-900">
+                보이스팩 파일 <span className="text-red-500">*</span>
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                ZIP 파일 또는 MP3, WAV, FLAC 등 오디오 파일
+              </p>
+              <input
+                type="file"
+                id="mainFile"
+                accept=".zip,.mp3,.wav,.flac,.m4a,.aac,.ogg"
+                onChange={(e) => setMainFile(e.target.files?.[0] || null)}
+                className="mt-2 block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {mainFile && (
+                <p className="text-xs text-gray-600 mt-1">
+                  선택됨: {mainFile.name} ({(mainFile.size / 1024 / 1024).toFixed(2)}MB)
+                </p>
+              )}
+            </div>
+
+            {/* 샘플 파일 (선택) */}
+            <div>
+              <label htmlFor="sampleFile" className="block text-sm font-medium leading-6 text-gray-900">
+                샘플 오디오 파일 (선택)
+              </label>
+              <p className="text-xs text-gray-500 mt-1">
+                별도로 업로드하지 않으면 메인 파일에서 앞 20초를 자동으로 생성합니다
+              </p>
+              <input
+                type="file"
+                id="sampleFile"
+                accept=".mp3,.wav,.flac,.m4a,.aac,.ogg"
+                onChange={(e) => setSampleFile(e.target.files?.[0] || null)}
+                className="mt-2 block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+              {sampleFile && (
+                <p className="text-xs text-gray-600 mt-1">
+                  선택됨: {sampleFile.name} ({(sampleFile.size / 1024 / 1024).toFixed(2)}MB)
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
+        {/* 기존 보이스팩 수정 시 샘플 URL 표시 */}
+        {formData.type === 'VOICE_PACK' && product && (
           <div>
-            <label htmlFor="sample_audio_url" className="block text-sm font-medium leading-6 text-gray-900">
-              샘플 오디오 URL (선택)
+            <label className="block text-sm font-medium leading-6 text-gray-900">
+              샘플 오디오 URL
             </label>
-            <input
-              type="url"
-              id="sample_audio_url"
-              value={formData.sample_audio_url}
-              onChange={(e) => setFormData({ ...formData, sample_audio_url: e.target.value })}
-              className="mt-2 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 px-3"
-              placeholder="https://..."
-            />
+            <p className="mt-2 text-sm text-gray-600">
+              {formData.sample_audio_url || '(없음)'}
+            </p>
+            {formData.sample_audio_url && (
+              <audio controls className="mt-2 w-full">
+                <source src={formData.sample_audio_url} type="audio/mpeg" />
+              </audio>
+            )}
           </div>
         )}
 
