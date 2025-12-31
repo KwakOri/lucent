@@ -2,21 +2,27 @@
 
 import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
+import { AddressSearchModal } from '@/components/order/AddressSearchModal';
+import type { AddressSearchResult } from '@/types/address';
 
 export default function WelcomePage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
+  const [mainAddress, setMainAddress] = useState('');
+  const [detailAddress, setDetailAddress] = useState('');
   const [errors, setErrors] = useState<{
     name?: string;
     phone?: string;
+    detailAddress?: string;
     general?: string;
   }>({});
   const [isSaving, setIsSaving] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   // 전화번호 자동 하이픈 추가
   const handlePhoneChange = (value: string) => {
@@ -35,6 +41,17 @@ export default function WelcomePage() {
     setErrors({ ...errors, phone: undefined });
   };
 
+  // 주소 선택 핸들러
+  const handleAddressSelect = (address: AddressSearchResult) => {
+    const selectedAddress = address.roadAddress || address.jibunAddress;
+    const fullAddress = address.zonecode
+      ? `[${address.zonecode}] ${selectedAddress}`
+      : selectedAddress;
+
+    setMainAddress(fullAddress);
+    setIsAddressModalOpen(false);
+  };
+
   // 폼 검증
   const validateForm = (): boolean => {
     const newErrors: typeof errors = {};
@@ -47,6 +64,13 @@ export default function WelcomePage() {
     // 전화번호 검증 (입력한 경우에만)
     if (phone && !/^01[0-9]-\d{3,4}-\d{4}$/.test(phone)) {
       newErrors.phone = '올바른 전화번호 형식을 입력해주세요 (예: 010-1234-5678)';
+    }
+
+    // 상세 주소 검증 (메인 주소를 입력한 경우에만 필수)
+    if (mainAddress && !detailAddress.trim()) {
+      newErrors.detailAddress = '상세 주소를 입력해주세요';
+    } else if (detailAddress && detailAddress.length < 2) {
+      newErrors.detailAddress = '상세 주소를 2자 이상 입력해주세요';
     }
 
     setErrors(newErrors);
@@ -72,7 +96,8 @@ export default function WelcomePage() {
         body: JSON.stringify({
           name: name || null,
           phone: phone || null,
-          address: address || null,
+          main_address: mainAddress || null,
+          detail_address: detailAddress || null,
         }),
       });
 
@@ -165,18 +190,57 @@ export default function WelcomePage() {
             {/* Address Field (Optional) */}
             <FormField
               label="주소"
-              htmlFor="address"
-              help="선택 입력"
+              htmlFor="mainAddress"
+              help="선택 입력 (주소 검색 버튼을 눌러 주소를 선택하세요)"
             >
-              <Input
-                id="address"
-                type="text"
-                placeholder="주소를 입력하세요"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                disabled={isSaving}
-              />
+              <div className="space-y-2">
+                <Button
+                  type="button"
+                  intent="neutral"
+                  size="md"
+                  onClick={() => setIsAddressModalOpen(true)}
+                  disabled={isSaving}
+                  className="w-full"
+                >
+                  <Search size={18} />
+                  <span className="ml-2">주소 검색</span>
+                </Button>
+                <Input
+                  id="mainAddress"
+                  type="text"
+                  placeholder="주소 검색 버튼을 눌러 주소를 선택하세요"
+                  value={mainAddress}
+                  readOnly
+                  disabled={isSaving}
+                  className="bg-gray-50 cursor-not-allowed"
+                />
+              </div>
             </FormField>
+
+            {/* Detail Address Field (Required if main address is filled) */}
+            {mainAddress && (
+              <FormField
+                label="상세 주소"
+                htmlFor="detailAddress"
+                required
+                error={errors.detailAddress}
+                help="동/호수 등 상세 주소를 입력하세요"
+              >
+                <Input
+                  id="detailAddress"
+                  type="text"
+                  placeholder="예: 101동 202호"
+                  value={detailAddress}
+                  onChange={(e) => {
+                    setDetailAddress(e.target.value);
+                    setErrors({ ...errors, detailAddress: undefined });
+                  }}
+                  error={!!errors.detailAddress}
+                  disabled={isSaving}
+                  autoFocus
+                />
+              </FormField>
+            )}
 
             {/* Buttons */}
             <div className="flex flex-col gap-3 mt-8">
@@ -204,6 +268,13 @@ export default function WelcomePage() {
           </form>
         </div>
       </div>
+
+      {/* Address Search Modal */}
+      <AddressSearchModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSelect={handleAddressSelect}
+      />
     </div>
   );
 }
