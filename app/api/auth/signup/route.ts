@@ -12,7 +12,7 @@ import { EmailVerificationService } from '@/lib/server/services/email-verificati
 import { LogService } from '@/lib/server/services/log.service';
 import { handleApiError, successResponse } from '@/lib/server/utils/api-response';
 import { getClientIp } from '@/lib/server/utils/request';
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { createServerClient, createAdminClient } from '@/lib/server/utils/supabase';
 import { ApiError } from '@/lib/server/utils/errors';
 
 export async function POST(request: NextRequest) {
@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
     // 토큰에서 이메일 추출 (email이 제공되지 않은 경우)
     const userEmail = email || verification.email;
 
-    // 3. Supabase 클라이언트 생성
-    const supabase = await createServerClient();
+    // 3. Admin 클라이언트 생성 (사용자 생성용)
+    const adminClient = await createAdminClient();
 
-    // 4. 사용자 생성 (Admin API)
-    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    // 4. 사용자 생성 (Admin API - Service Role Key 필요)
+    const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
       email: verification.email,
       password: verification.hashed_password || '',
       email_confirm: true, // 이메일 인증 완료 상태로 생성
@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
       throw new ApiError('회원가입에 실패했습니다', 500);
     }
 
-    // 5. profiles 테이블에 레코드 생성
+    // 5. 일반 서버 클라이언트 생성 (프로필 생성 및 로그인용)
+    const supabase = await createServerClient();
+
+    // 6. profiles 테이블에 레코드 생성
     const { error: profileError } = await supabase.from('profiles').insert({
       id: authData.user.id,
       email: verification.email,
@@ -70,12 +73,12 @@ export async function POST(request: NextRequest) {
 
     if (profileError) {
       console.error('[Signup] 프로필 생성 실패:', profileError);
-      // 프로필 생성 실패 시 auth.users도 롤백
-      await supabase.auth.admin.deleteUser(authData.user.id);
+      // 프로필 생성 실패 시 auth.users도 롤백 (admin client 사용)
+      await adminClient.auth.admin.deleteUser(authData.user.id);
       throw new ApiError('프로필 생성에 실패했습니다', 500);
     }
 
-    // 6. 세션 생성 (자동 로그인)
+    // 7. 세션 생성 (자동 로그인)
     const { data: sessionData, error: sessionError } =
       await supabase.auth.signInWithPassword({
         email: verification.email,
@@ -87,10 +90,10 @@ export async function POST(request: NextRequest) {
       throw new ApiError('로그인에 실패했습니다. 로그인 페이지에서 다시 시도해주세요.', 500);
     }
 
-    // 7. email_verifications 레코드 삭제
+    // 8. email_verifications 레코드 삭제
     await EmailVerificationService.deleteVerification(verificationToken);
 
-    // 8. 로그 기록
+    // 9. 로그 기록
     const clientIp = getClientIp(request);
     await LogService.log({
       eventType: 'SIGNUP_SUCCESS',
@@ -101,7 +104,7 @@ export async function POST(request: NextRequest) {
       ipAddress: clientIp,
     });
 
-    // 9. 성공 응답
+    // 10. 성공 응답
     return successResponse(
       {
         user: {

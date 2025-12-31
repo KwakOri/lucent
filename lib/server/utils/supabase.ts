@@ -54,6 +54,40 @@ export async function getCurrentUser() {
 }
 
 /**
+ * Admin용 Supabase 클라이언트 생성
+ *
+ * Service Role Key를 사용하여 관리자 권한이 필요한 작업 수행
+ * (예: auth.admin.createUser, auth.admin.deleteUser 등)
+ *
+ * ⚠️ 주의: 이 클라이언트는 모든 RLS를 우회하므로 신중하게 사용해야 합니다.
+ */
+export async function createAdminClient() {
+  const cookieStore = await cookies();
+
+  return createSupabaseServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!, // Service Role Key 사용
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            );
+          } catch {
+            // Server Component에서 cookies().set()을 호출하면 에러가 발생할 수 있음
+            // 이 경우 무시하고 계속 진행
+          }
+        },
+      },
+    }
+  );
+}
+
+/**
  * 관리자 권한 확인
  *
  * TODO: 실제 프로덕션에서는 profiles 테이블에 role 컬럼을 추가하고,
