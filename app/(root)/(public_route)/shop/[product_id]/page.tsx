@@ -55,13 +55,6 @@ export default function ProductDetailPage() {
         const audio = new Audio(product.sample_audio_url);
         audio.volume = volume; // 음량 설정
 
-        // 재생 시작
-        audio.play().catch((error) => {
-          console.error('샘플 재생 실패:', error);
-          alert('샘플 재생에 실패했습니다. 다시 시도해주세요.');
-          setIsPlayingSample(false);
-        });
-
         // 재생 종료 시 상태 업데이트
         audio.onended = () => {
           setIsPlayingSample(false);
@@ -76,8 +69,17 @@ export default function ProductDetailPage() {
           audioRef.current = null;
         };
 
+        // ✅ Race Condition 방지: 재생 전에 먼저 참조와 상태 설정
         audioRef.current = audio;
         setIsPlayingSample(true);
+
+        // ✅ 그 다음 재생 시작
+        audio.play().catch((error) => {
+          console.error('샘플 재생 실패:', error);
+          alert('샘플 재생에 실패했습니다. 다시 시도해주세요.');
+          setIsPlayingSample(false);
+          audioRef.current = null;
+        });
       } catch (error) {
         console.error('샘플 재생 중 오류:', error);
         alert('샘플 재생에 실패했습니다.');
