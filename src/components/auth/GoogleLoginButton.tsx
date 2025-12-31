@@ -29,8 +29,14 @@ export function GoogleLoginButton() {
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          },
         },
       });
+
+      console.log('[GoogleLoginButton] OAuth initiated with redirectTo:', `${window.location.origin}/auth/callback`);
 
       if (oauthError) {
         throw oauthError;
