@@ -49,6 +49,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * 상품 생성 (관리자)
+ *
+ * - JSON: 일반 상품
+ * - multipart/form-data: 보이스팩 (파일 업로드)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +62,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const contentType = request.headers.get('content-type') || '';
+
+    // multipart/form-data: 보이스팩 생성 (파일 업로드)
+    if (contentType.includes('multipart/form-data')) {
+      return await createVoicePackProduct(request);
+    }
+
+    // JSON: 일반 상품 생성
     const body = await request.json() as CreateProductRequest;
 
     // TODO: 관리자 ID 가져오기
@@ -76,4 +87,118 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     return handleApiError(error);
   }
+}
+
+/**
+ * 보이스팩 상품 생성 (파일 업로드)
+ */
+async function createVoicePackProduct(request: NextRequest) {
+  const { SampleGenerationService } = await import('@/lib/server/services/sample-generation.service');
+  const { uploadFile } = await import('@/lib/server/utils/r2');
+  const { v4: uuidv4 } = await import('uuid');
+  const { ApiError } = await import('@/lib/server/utils/errors');
+
+  try {
+    const formData = await request.formData();
+
+    // Form fields
+    const name = formData.get('name') as string;
+    const price = parseInt(formData.get('price') as string);
+    const description = formData.get('description') as string | null;
+    const artistId = formData.get('artistId') as string;
+    const projectId = formData.get('projectId') as string | null;
+
+    // Files
+    const mainFile = formData.get('mainFile') as File | null;
+    const sampleFile = formData.get('sampleFile') as File | null;
+
+    // 0. 필수 필드 검증
+    if (!mainFile) {
+      throw new ApiError('보이스팩 파일은 필수입니다', 400);
+    }
+
+    if (!name || !price || !artistId) {
+      throw new ApiError('상품명, 가격, 아티스트는 필수입니다', 400);
+    }
+
+    const productId = uuidv4();
+
+    // 1. 메인 파일 업로드
+    console.log('[Product] 메인 파일 업로드 시작:', mainFile.name);
+    const mainFileBuffer = Buffer.from(await mainFile.arrayBuffer());
+    const mainFileUrl = await uploadFile({
+      key: `voicepacks/${productId}/main${getFileExtension(mainFile.name)}`,
+      body: mainFileBuffer,
+      contentType: mainFile.type || 'application/octet-stream',
+    });
+    console.log('[Product] 메인 파일 업로드 완료:', mainFileUrl);
+
+    // 2. 샘플 파일 처리
+    let sampleFileUrl: string;
+    let hasCustomSample: boolean;
+
+    if (sampleFile) {
+      // 케이스 2: 커스텀 샘플 제공
+      console.log('[Product] 커스텀 샘플 파일 업로드:', sampleFile.name);
+
+      const sampleBuffer = Buffer.from(await sampleFile.arrayBuffer());
+      sampleFileUrl = await uploadFile({
+        key: `voicepacks/${productId}/sample.mp3`,
+        body: sampleBuffer,
+        contentType: 'audio/mpeg',
+      });
+
+      hasCustomSample = true;
+      console.log('[Product] 커스텀 샘플 업로드 완료');
+    } else {
+      // 케이스 3: 자동 샘플 생성
+      console.log('[Product] 샘플 파일 자동 생성 시작...');
+
+      const sampleBuffer = await SampleGenerationService.generateSample(
+        mainFileBuffer,
+        mainFile.name
+      );
+
+      sampleFileUrl = await uploadFile({
+        key: `voicepacks/${productId}/sample.mp3`,
+        body: sampleBuffer,
+        contentType: 'audio/mpeg',
+      });
+
+      hasCustomSample = false;
+      console.log('[Product] 샘플 파일 자동 생성 완료');
+    }
+
+    // 3. DB에 상품 저장
+    const productData = {
+      id: productId,
+      name,
+      type: 'VOICE_PACK' as const,
+      price,
+      description: description || null,
+      artist_id: artistId,
+      project_id: projectId || null,
+      digital_file_url: mainFileUrl,
+      sample_audio_url: sampleFileUrl,
+      has_custom_sample: hasCustomSample,
+      is_active: true,
+    };
+
+    const product = await ProductService.createProduct(productData, 'admin-id');
+
+    console.log('[Product] 상품 생성 완료:', product.id);
+
+    return successResponse(product, 201);
+  } catch (error) {
+    console.error('[Product] 보이스팩 생성 실패:', error);
+    throw error;
+  }
+}
+
+/**
+ * 파일 확장자 추출 (점 포함)
+ */
+function getFileExtension(filename: string): string {
+  const lastDot = filename.lastIndexOf('.');
+  return lastDot !== -1 ? filename.substring(lastDot) : '';
 }
