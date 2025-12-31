@@ -64,7 +64,13 @@ export async function POST(request: NextRequest) {
     // TODO: 관리자 ID 가져오기
     const adminId = 'admin-id';
 
-    const product = await ProductService.createProduct(body, adminId);
+    // 빈 문자열을 null로 변환
+    const productData = {
+      ...body,
+      main_image_id: body.main_image_id || null,
+    };
+
+    const product = await ProductService.createProduct(productData, adminId);
 
     return successResponse(product, 201);
   } catch (error) {

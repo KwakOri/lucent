@@ -172,15 +172,17 @@ export class ArtistService {
       throw new NotFoundError('프로젝트를 찾을 수 없습니다', 'PROJECT_NOT_FOUND');
     }
 
-    // 3. 이미지 존재 확인
-    const { data: image, error: imageError } = await supabase
-      .from('images')
-      .select('id')
-      .eq('id', artistData.profile_image_id)
-      .single();
+    // 3. 이미지 존재 확인 (선택사항)
+    if (artistData.profile_image_id) {
+      const { data: image, error: imageError } = await supabase
+        .from('images')
+        .select('id')
+        .eq('id', artistData.profile_image_id)
+        .single();
 
-    if (imageError || !image) {
-      throw new NotFoundError('이미지를 찾을 수 없습니다', 'IMAGE_NOT_FOUND');
+      if (imageError || !image) {
+        throw new NotFoundError('이미지를 찾을 수 없습니다', 'IMAGE_NOT_FOUND');
+      }
     }
 
     // 4. 아티스트 생성
@@ -190,7 +192,7 @@ export class ArtistService {
         name: artistData.name,
         slug: artistData.slug,
         project_id: artistData.project_id,
-        profile_image_id: artistData.profile_image_id,
+        profile_image_id: artistData.profile_image_id || null,
         description: artistData.description || null,
         is_active: artistData.is_active ?? true,
       })

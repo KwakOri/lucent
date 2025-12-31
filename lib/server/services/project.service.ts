@@ -176,15 +176,17 @@ export class ProjectService {
       throw new ApiError('이미 사용 중인 슬러그입니다', 409, 'SLUG_ALREADY_EXISTS');
     }
 
-    // 2. 이미지 존재 확인
-    const { data: image, error: imageError } = await supabase
-      .from('images')
-      .select('id')
-      .eq('id', projectData.cover_image_id)
-      .single();
+    // 2. 이미지 존재 확인 (선택사항)
+    if (projectData.cover_image_id) {
+      const { data: image, error: imageError } = await supabase
+        .from('images')
+        .select('id')
+        .eq('id', projectData.cover_image_id)
+        .single();
 
-    if (imageError || !image) {
-      throw new NotFoundError('이미지를 찾을 수 없습니다', 'IMAGE_NOT_FOUND');
+      if (imageError || !image) {
+        throw new NotFoundError('이미지를 찾을 수 없습니다', 'IMAGE_NOT_FOUND');
+      }
     }
 
     // 3. 프로젝트 생성
@@ -193,7 +195,7 @@ export class ProjectService {
       .insert({
         name: projectData.name,
         slug: projectData.slug,
-        cover_image_id: projectData.cover_image_id,
+        cover_image_id: projectData.cover_image_id || null,
         description: projectData.description || null,
         release_date: projectData.release_date || null,
         external_links: projectData.external_links || null,
@@ -204,7 +206,8 @@ export class ProjectService {
       .single();
 
     if (error) {
-      throw new ApiError('프로젝트 생성 실패', 500, 'PROJECT_CREATE_FAILED');
+      console.error('프로젝트 생성 실패:', error);
+      throw new ApiError(`프로젝트 생성 실패: ${error.message}`, 500, 'PROJECT_CREATE_FAILED');
     }
 
     return data as Project;
