@@ -48,3 +48,11 @@ export type {
   ResetPasswordRequest,
   UpdatePasswordRequest,
 } from './api';
+
+// Address Types
+export type {
+  AddressSearchParams,
+  KakaoAddressDocument,
+  KakaoAddressSearchResponse,
+  AddressSearchResult,
+} from './address';

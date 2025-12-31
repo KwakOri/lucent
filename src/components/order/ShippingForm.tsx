@@ -7,9 +7,13 @@
 'use client';
 
 import { useState } from 'react';
+import { Search } from 'lucide-react';
 import { FormField } from '@/components/ui/form-field';
 import { Input, Textarea } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { AddressSearchModal } from './AddressSearchModal';
+import type { AddressSearchResult } from '@/types/address';
 
 export interface ShippingInfo {
   name: string;
@@ -40,6 +44,7 @@ export function ShippingForm({
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof ShippingInfo, string>>>({});
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const handleChange = (field: keyof ShippingInfo, value: string) => {
     const newValues = { ...values, [field]: value };
@@ -94,6 +99,16 @@ export function ShippingForm({
     }
   };
 
+  const handleAddressSelect = (address: AddressSearchResult) => {
+    // 도로명 주소가 있으면 도로명 우선, 없으면 지번 주소 사용
+    const selectedAddress = address.roadAddress || address.jibunAddress;
+    const fullAddress = address.zonecode
+      ? `[${address.zonecode}] ${selectedAddress}`
+      : selectedAddress;
+
+    handleChange('address', fullAddress);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-4">
@@ -144,16 +159,29 @@ export function ShippingForm({
         htmlFor="shippingAddress"
         required
         error={errors.address}
+        help="주소 검색 후 상세 주소(동/호수)를 추가로 입력하세요"
       >
-        <Textarea
-          id="shippingAddress"
-          name="shippingAddress"
-          placeholder="상세 주소를 입력하세요"
-          value={values.address}
-          onChange={(e) => handleChange('address', e.target.value)}
-          error={!!errors.address}
-          rows={3}
-        />
+        <div className="space-y-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="md"
+            onClick={() => setIsAddressModalOpen(true)}
+            className="w-full"
+          >
+            <Search size={18} />
+            <span className="ml-2">주소 검색</span>
+          </Button>
+          <Textarea
+            id="shippingAddress"
+            name="shippingAddress"
+            placeholder="주소 검색 버튼을 눌러 기본 주소를 입력하고, 상세 주소(동/호수)를 추가로 입력하세요"
+            value={values.address}
+            onChange={(e) => handleChange('address', e.target.value)}
+            error={!!errors.address}
+            rows={3}
+          />
+        </div>
       </FormField>
 
       <FormField
@@ -169,6 +197,13 @@ export function ShippingForm({
           rows={2}
         />
       </FormField>
+
+      {/* 주소 검색 모달 */}
+      <AddressSearchModal
+        isOpen={isAddressModalOpen}
+        onClose={() => setIsAddressModalOpen(false)}
+        onSelect={handleAddressSelect}
+      />
     </div>
   );
 }

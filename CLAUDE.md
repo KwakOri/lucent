@@ -463,6 +463,9 @@ SMTP_FROM="Lucent Management <your-email@gmail.com>"
 # 관리자 이메일 (쉼표로 구분)
 ADMIN_EMAILS=admin@example.com,manager@example.com
 
+# 카카오 API (주소 검색)
+KAKAO_REST_API_KEY=your-kakao-rest-api-key
+
 # Cloudflare R2 (디지털 상품 저장소, 선택사항)
 R2_ACCOUNT_ID=your-account-id
 R2_ACCESS_KEY_ID=your-access-key
