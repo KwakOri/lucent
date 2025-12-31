@@ -455,14 +455,14 @@ await LogService.logDigitalProductDownload(
 - [x] R2 파일 업로드 및 저장
 - [x] 샘플 재생 기능 (public URL)
 - [x] 주문 생성
-- [ ] 관리자 입금 확인 API
-- [ ] 입금 확인 시 구매 완료 이메일 자동 발송 ⭐
-- [ ] 마이페이지 - 내 보이스팩 목록 조회 API
-- [ ] 마이페이지 - 다운로드 버튼 UI
-- [ ] 다운로드 링크 생성 (Presigned URL)
+- [x] 관리자 입금 확인 API (`PATCH /api/orders/:id/status`)
+- [x] 입금 확인 시 구매 완료 이메일 자동 발송 ⭐ (`OrderService.updateOrderStatus`)
+- [x] 마이페이지 - 내 보이스팩 목록 조회 API (`GET /api/users/me/voicepacks`)
+- [x] 마이페이지 - 다운로드 버튼 UI (app/mypage/page.tsx)
+- [x] 다운로드 링크 생성 (Presigned URL) (`GET /api/orders/:id/items/:itemId/download`)
 
-**DB 추가 필요:**
-- [ ] `order_items.last_downloaded_at` 컬럼 추가
+**DB 추가:**
+- [x] `order_items.last_downloaded_at` 컬럼 추가 (migration: 20250101000003)
 
 ### 추후 개선
 
