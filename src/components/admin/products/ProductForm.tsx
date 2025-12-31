@@ -22,17 +22,21 @@ interface Product {
   name: string;
   slug: string;
   type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
-  project_id: string;
-  main_image_id: string;
+  project_id: string | null;
+  artist_id?: string | null;
+  main_image_id: string | null;
   main_image?: {
     id: string;
     public_url: string;
-    cdn_url?: string;
+    cdn_url: string | null;
+    alt_text?: string | null;
   } | null;
   price: number;
-  description?: string;
+  description?: string | null;
   stock?: number | null;
-  sample_audio_url?: string;
+  sample_audio_url?: string | null;
+  digital_file_url?: string | null;
+  has_custom_sample?: boolean | null;
   is_active: boolean;
 }
 

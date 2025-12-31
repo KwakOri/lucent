@@ -10,7 +10,8 @@ interface Order {
   user_id: string;
   shipping_name?: string | null;
   shipping_phone?: string | null;
-  shipping_address?: string | null;
+  shipping_main_address?: string | null;
+  shipping_detail_address?: string | null;
   shipping_memo?: string | null;
   total_price: number;
   status: string;
@@ -21,14 +22,14 @@ interface Order {
     quantity: number;
     price_snapshot: number;
     product_name: string;
-    product_type: string;
-    product: {
+    product_type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
+    product?: {
       id: string;
       name: string;
-      type: string;
+      type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
       digital_file_url?: string | null;
       sample_audio_url?: string | null;
-    } | null;
+    };
   }>;
 }
 

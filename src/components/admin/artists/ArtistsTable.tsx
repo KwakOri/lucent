@@ -10,14 +10,16 @@ interface Artist {
   slug: string;
   is_active: boolean;
   created_at: string;
-  profile_image: {
+  profile_image?: {
+    id: string;
     public_url: string;
-    cdn_url?: string;
-  } | null;
-  project: {
+    alt_text: string | null;
+  };
+  project?: {
     id: string;
     name: string;
-  } | null;
+    slug: string;
+  };
 }
 
 interface ArtistsTableProps {

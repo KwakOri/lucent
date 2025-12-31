@@ -16,13 +16,13 @@ interface Artist {
   name: string;
   slug: string;
   project_id: string;
-  profile_image_id: string;
+  profile_image_id: string | null;
   profile_image?: {
     id: string;
     public_url: string;
-    cdn_url?: string;
-  } | null;
-  description?: string;
+    alt_text: string | null;
+  };
+  description?: string | null;
   is_active: boolean;
 }
 

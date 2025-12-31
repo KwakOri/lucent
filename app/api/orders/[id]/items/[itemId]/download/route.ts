@@ -14,10 +14,10 @@ import { handleApiError, successResponse, errorResponse } from '@/lib/server/uti
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ orderId: string; itemId: string }> }
+  { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
-    const { orderId, itemId } = await params;
+    const { id: orderId, itemId } = await params;
 
     // 1. 인증 확인
     const user = await getCurrentUser();

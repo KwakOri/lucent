@@ -13,11 +13,11 @@ interface Order {
   user_id: string;
   items: Array<{
     id: string;
-    product: {
+    product?: {
       id: string;
       name: string;
-      type: string;
-    } | null;
+      type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
+    };
   }>;
 }
 

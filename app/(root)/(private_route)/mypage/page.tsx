@@ -192,9 +192,9 @@ export default function MyPage() {
                   {/* Order Footer */}
                   <div className="pt-4 border-t border-neutral-200 flex items-center justify-between">
                     <div>
-                      {order.shipping_address && (
+                      {order.shipping_main_address && (
                         <p className="text-sm text-text-secondary">
-                          배송지: {order.shipping_address}
+                          배송지: {order.shipping_main_address} {order.shipping_detail_address || ''}
                         </p>
                       )}
                     </div>

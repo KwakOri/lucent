@@ -13,7 +13,19 @@ import type {
   CreateOrderRequest,
   PaginatedResponse,
   ApiResponse,
+  Enums,
 } from '@/types';
+
+// Order with items type
+export type OrderWithItems = Tables<'orders'> & {
+  items: Array<Tables<'order_items'> & {
+    product?: {
+      id: string;
+      name: string;
+      type: Enums<'product_type'>;
+    };
+  }>;
+};
 
 /**
  * 주문 목록 조회 Hook
@@ -32,7 +44,7 @@ export function useOrders(params?: GetOrdersQuery) {
       if (!response.ok) {
         throw new Error('주문 목록 조회 실패');
       }
-      const data: PaginatedResponse<Tables<'orders'>> = await response.json();
+      const data: PaginatedResponse<OrderWithItems> = await response.json();
       return data;
     },
   });
@@ -53,7 +65,7 @@ export function useOrder(orderId: string | null) {
       if (!response.ok) {
         throw new Error('주문 조회 실패');
       }
-      const data: ApiResponse<Tables<'orders'>> = await response.json();
+      const data: ApiResponse<OrderWithItems> = await response.json();
       return data.data;
     },
     enabled: !!orderId,
@@ -84,7 +96,7 @@ export function useCreateOrder() {
         const error = await response.json();
         throw new Error(error.message || '주문 생성 실패');
       }
-      const data: ApiResponse<Tables<'orders'>> = await response.json();
+      const data: ApiResponse<OrderWithItems> = await response.json();
       return data.data;
     },
     onSuccess: () => {

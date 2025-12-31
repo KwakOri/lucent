@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+import { InputHTMLAttributes, forwardRef, ReactNode } from "react";
 import { Check } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -7,7 +7,7 @@ export interface CheckboxProps
   /**
    * Checkbox label
    */
-  label?: string;
+  label?: ReactNode;
   /**
    * Error state - shows error styling
    */

@@ -4,15 +4,28 @@ import { useState } from 'react';
 
 interface Log {
   id: string;
-  category: string;
+  event_category: string;
   event_type: string;
-  level: string;
+  severity: string;
   user_id: string | null;
-  user_email: string | null;
+  admin_id: string | null;
+  resource_type: string | null;
+  resource_id: string | null;
+  message: string;
   ip_address: string | null;
   user_agent: string | null;
+  request_path: string | null;
   metadata: any;
+  changes: any;
   created_at: string;
+  user?: {
+    email: string;
+    name: string | null;
+  } | null;
+  admin?: {
+    email: string;
+    name: string | null;
+  } | null;
 }
 
 interface LogsTableProps {
@@ -39,8 +52,8 @@ export function LogsTable({ logs: initialLogs }: LogsTableProps) {
 
   // Filter logs
   const filteredLogs = logs.filter((log) => {
-    if (categoryFilter !== 'all' && log.category !== categoryFilter) return false;
-    if (levelFilter !== 'all' && log.level !== levelFilter) return false;
+    if (categoryFilter !== 'all' && log.event_category !== categoryFilter) return false;
+    if (levelFilter !== 'all' && log.severity !== levelFilter) return false;
     return true;
   });
 
@@ -114,20 +127,20 @@ export function LogsTable({ logs: initialLogs }: LogsTableProps) {
                           {new Date(log.created_at).toLocaleString('ko-KR')}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {categoryLabels[log.category] || log.category}
+                          {categoryLabels[log.event_category] || log.event_category}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900">
                           {log.event_type}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {log.user_email || '-'}
+                          {log.user?.email || log.admin?.email || '-'}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {log.ip_address || '-'}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm">
-                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${levelColors[log.level] || 'bg-gray-100 text-gray-800'}`}>
-                            {log.level}
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${levelColors[log.severity] || 'bg-gray-100 text-gray-800'}`}>
+                            {log.severity}
                           </span>
                         </td>
                       </tr>

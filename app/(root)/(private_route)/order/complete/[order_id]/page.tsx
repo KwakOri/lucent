@@ -165,7 +165,7 @@ export default function OrderConfirmationPage() {
         </section>
 
         {/* Shipping Info (Physical Goods Only) */}
-        {hasPhysicalGoods && order.shipping_address && (
+        {hasPhysicalGoods && order.shipping_main_address && (
           <section className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <span>🚚</span>
@@ -190,7 +190,7 @@ export default function OrderConfirmationPage() {
               <div className="flex">
                 <dt className="w-24 text-sm text-gray-500">배송 주소</dt>
                 <dd className="flex-1 text-sm font-medium text-gray-900">
-                  {order.shipping_address}
+                  {order.shipping_main_address} {order.shipping_detail_address || ''}
                 </dd>
               </div>
 
@@ -321,7 +321,7 @@ export default function OrderConfirmationPage() {
         <div className="flex flex-col sm:flex-row gap-4">
           <Link href={`/mypage/orders/${order.id}`} className="flex-1">
             <Button
-              variant="outline"
+              intent="secondary"
               size="lg"
               fullWidth
               className="flex items-center justify-center gap-2"
@@ -333,7 +333,7 @@ export default function OrderConfirmationPage() {
 
           <Link href="/shop" className="flex-1">
             <Button
-              variant="primary"
+              intent="primary"
               size="lg"
               fullWidth
               className="flex items-center justify-center gap-2"

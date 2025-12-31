@@ -221,7 +221,7 @@ export default function CheckoutPage() {
                   </span>
                 }
                 checked={agreedToTerms}
-                onChange={setAgreedToTerms}
+                onChange={(e) => setAgreedToTerms(e.target.checked)}
               />
             </section>
 
@@ -254,7 +254,7 @@ export default function CheckoutPage() {
         {/* Bottom Actions */}
         <div className="mt-8 flex gap-4 justify-end">
           <Button
-            variant="outline"
+            intent="secondary"
             size="lg"
             onClick={() => router.back()}
           >
@@ -262,7 +262,7 @@ export default function CheckoutPage() {
           </Button>
 
           <Button
-            variant="primary"
+            intent="primary"
             size="lg"
             onClick={handleSubmit}
             disabled={!isFormValid || isCreatingOrder}
