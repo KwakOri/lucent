@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ImageUpload } from '@/src/components/admin/ImageUpload';
 
-interface Artist {
+interface Project {
   id: string;
   name: string;
   slug: string;
@@ -16,7 +16,7 @@ interface Product {
   name: string;
   slug: string;
   type: 'VOICE_PACK' | 'PHYSICAL_GOODS';
-  artist_id: string;
+  project_id: string;
   main_image_id: string;
   main_image?: {
     id: string;
@@ -31,11 +31,11 @@ interface Product {
 }
 
 interface ProductFormProps {
-  artists: Artist[];
+  projects: Project[];
   product?: Product;
 }
 
-export function ProductForm({ artists, product }: ProductFormProps) {
+export function ProductForm({ projects, product }: ProductFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -43,7 +43,7 @@ export function ProductForm({ artists, product }: ProductFormProps) {
     name: product?.name || '',
     slug: product?.slug || '',
     type: product?.type || 'VOICE_PACK' as 'VOICE_PACK' | 'PHYSICAL_GOODS',
-    artist_id: product?.artist_id || artists[0]?.id || '',
+    project_id: product?.project_id || projects[0]?.id || '',
     main_image_id: product?.main_image_id || '',
     price: product?.price || 0,
     description: product?.description || '',
@@ -119,21 +119,21 @@ export function ProductForm({ artists, product }: ProductFormProps) {
           </div>
         </div>
 
-        {/* 아티스트 */}
+        {/* 프로젝트 */}
         <div>
-          <label htmlFor="artist_id" className="block text-sm font-medium leading-6 text-gray-900">
-            소속 아티스트 <span className="text-red-500">*</span>
+          <label htmlFor="project_id" className="block text-sm font-medium leading-6 text-gray-900">
+            소속 프로젝트 <span className="text-red-500">*</span>
           </label>
           <select
-            id="artist_id"
+            id="project_id"
             required
-            value={formData.artist_id}
-            onChange={(e) => setFormData({ ...formData, artist_id: e.target.value })}
+            value={formData.project_id}
+            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
             className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
           >
-            {artists.map((artist) => (
-              <option key={artist.id} value={artist.id}>
-                {artist.name}
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
               </option>
             ))}
           </select>

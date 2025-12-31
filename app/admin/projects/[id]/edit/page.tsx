@@ -1,25 +1,6 @@
 import { notFound } from 'next/navigation';
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { ProjectService } from '@/lib/server/services/project.service';
 import { ProjectForm } from '@/src/components/admin/projects/ProjectForm';
-
-async function getProject(id: string) {
-  const supabase = await createServerClient();
-
-  const { data: project } = await supabase
-    .from('projects')
-    .select(`
-      *,
-      cover_image:images!cover_image_id (
-        id,
-        public_url,
-        cdn_url
-      )
-    `)
-    .eq('id', id)
-    .single();
-
-  return project;
-}
 
 export default async function EditProjectPage({
   params,
@@ -27,9 +8,11 @@ export default async function EditProjectPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const project = await getProject(id);
 
-  if (!project) {
+  let project;
+  try {
+    project = await ProjectService.getProjectById(id);
+  } catch (error) {
     notFound();
   }
 

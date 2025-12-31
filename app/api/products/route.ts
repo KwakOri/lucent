@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
-    const artistId = searchParams.get('artistId') || undefined;
+    const projectId = searchParams.get('projectId') || undefined;
     const type = searchParams.get('type') as Enums<'product_type'> | undefined;
     const isActive = searchParams.get('isActive') === 'false' ? false : true;
     const sortBy = (searchParams.get('sortBy') || 'created_at') as 'created_at' | 'price' | 'name';
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const result = await ProductService.getProducts({
       page,
       limit,
-      artistId,
+      projectId,
       type,
       isActive,
       sortBy,

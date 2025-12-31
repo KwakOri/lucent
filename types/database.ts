@@ -392,7 +392,6 @@ export type Database = {
       }
       products: {
         Row: {
-          artist_id: string
           created_at: string
           description: string | null
           digital_file_url: string | null
@@ -401,6 +400,7 @@ export type Database = {
           main_image_id: string | null
           name: string
           price: number
+          project_id: string
           sample_audio_url: string | null
           slug: string
           stock: number | null
@@ -408,7 +408,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          artist_id: string
           created_at?: string
           description?: string | null
           digital_file_url?: string | null
@@ -417,6 +416,7 @@ export type Database = {
           main_image_id?: string | null
           name: string
           price: number
+          project_id: string
           sample_audio_url?: string | null
           slug: string
           stock?: number | null
@@ -424,7 +424,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          artist_id?: string
           created_at?: string
           description?: string | null
           digital_file_url?: string | null
@@ -433,6 +432,7 @@ export type Database = {
           main_image_id?: string | null
           name?: string
           price?: number
+          project_id?: string
           sample_audio_url?: string | null
           slug?: string
           stock?: number | null
@@ -441,17 +441,17 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "products_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "products_main_image_id_fkey"
             columns: ["main_image_id"]
             isOneToOne: false
             referencedRelation: "images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
@@ -491,10 +491,12 @@ export type Database = {
           cover_image_id: string | null
           created_at: string
           description: string | null
+          external_links: Json | null
           id: string
           is_active: boolean
           name: string
           order_index: number
+          release_date: string | null
           slug: string
           updated_at: string
         }
@@ -502,10 +504,12 @@ export type Database = {
           cover_image_id?: string | null
           created_at?: string
           description?: string | null
+          external_links?: Json | null
           id?: string
           is_active?: boolean
           name: string
           order_index?: number
+          release_date?: string | null
           slug: string
           updated_at?: string
         }
@@ -513,10 +517,12 @@ export type Database = {
           cover_image_id?: string | null
           created_at?: string
           description?: string | null
+          external_links?: Json | null
           id?: string
           is_active?: boolean
           name?: string
           order_index?: number
+          release_date?: string | null
           slug?: string
           updated_at?: string
         }

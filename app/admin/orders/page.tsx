@@ -1,36 +1,8 @@
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { OrderService } from '@/lib/server/services/order.service';
 import { OrdersTable } from '@/src/components/admin/orders/OrdersTable';
 
-async function getOrders() {
-  const supabase = await createServerClient();
-
-  const { data: orders } = await supabase
-    .from('orders')
-    .select(`
-      id,
-      order_number,
-      buyer_name,
-      buyer_email,
-      total_amount,
-      status,
-      created_at,
-      order_items (
-        id,
-        product:products (
-          id,
-          name,
-          type
-        )
-      )
-    `)
-    .order('created_at', { ascending: false })
-    .limit(100);
-
-  return orders || [];
-}
-
 export default async function AdminOrdersPage() {
-  const orders = await getOrders();
+  const { orders } = await OrderService.getAllOrders({ limit: 100 });
 
   return (
     <div>

@@ -21,16 +21,16 @@ async function getProduct(id: string) {
   return product;
 }
 
-async function getArtists() {
+async function getProjects() {
   const supabase = await createServerClient();
 
-  const { data: artists } = await supabase
-    .from('artists')
+  const { data: projects } = await supabase
+    .from('projects')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name', { ascending: true});
 
-  return artists || [];
+  return projects || [];
 }
 
 export default async function EditProductPage({
@@ -39,9 +39,9 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [product, artists] = await Promise.all([
+  const [product, projects] = await Promise.all([
     getProduct(id),
-    getArtists(),
+    getProjects(),
   ]);
 
   if (!product) {
@@ -57,7 +57,7 @@ export default async function EditProductPage({
         </p>
       </div>
 
-      <ProductForm artists={artists} product={product} />
+      <ProductForm projects={projects} product={product} />
     </div>
   );
 }

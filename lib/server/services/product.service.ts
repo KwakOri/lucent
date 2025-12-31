@@ -19,7 +19,7 @@ type ProductType = Enums<'product_type'>;
 interface GetProductsOptions {
   page?: number;
   limit?: number;
-  artistId?: string;
+  projectId?: string;
   type?: ProductType;
   isActive?: boolean;
   sortBy?: 'created_at' | 'price' | 'name';
@@ -27,7 +27,7 @@ interface GetProductsOptions {
 }
 
 interface ProductWithDetails extends Product {
-  artist?: {
+  project?: {
     id: string;
     name: string;
     slug: string;
@@ -59,7 +59,7 @@ export class ProductService {
     const {
       page = 1,
       limit = 20,
-      artistId,
+      projectId,
       type,
       isActive = true,
       sortBy = 'created_at',
@@ -71,7 +71,7 @@ export class ProductService {
       .select(
         `
         *,
-        artist:artists!products_artist_id_fkey (
+        project:projects!products_project_id_fkey (
           id,
           name,
           slug
@@ -90,8 +90,8 @@ export class ProductService {
       query = query.eq('is_active', isActive);
     }
 
-    if (artistId) {
-      query = query.eq('artist_id', artistId);
+    if (projectId) {
+      query = query.eq('project_id', projectId);
     }
 
     if (type) {
@@ -134,7 +134,7 @@ export class ProductService {
       .select(
         `
         *,
-        artist:artists!products_artist_id_fkey (
+        project:projects!products_project_id_fkey (
           id,
           name,
           slug,
@@ -180,7 +180,7 @@ export class ProductService {
       .select(
         `
         *,
-        artist:artists!products_artist_id_fkey (
+        project:projects!products_project_id_fkey (
           id,
           name,
           slug

@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface Artist {
@@ -101,11 +100,9 @@ export function ArtistsTable({ artists: initialArtists }: ArtistsTableProps) {
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
                         <div className="h-10 w-10 flex-shrink-0">
                           {artist.profile_image ? (
-                            <Image
+                            <img
                               src={artist.profile_image.cdn_url || artist.profile_image.public_url}
                               alt={artist.name}
-                              width={40}
-                              height={40}
                               className="h-10 w-10 rounded-full object-cover"
                             />
                           ) : (

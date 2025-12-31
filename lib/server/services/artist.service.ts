@@ -27,7 +27,7 @@ interface ArtistWithDetails extends Artist {
 
 export class ArtistService {
   /**
-   * 아티스트 목록 조회
+   * 아티스트 목록 조회 (활성화된 것만)
    */
   static async getArtists(): Promise<ArtistWithDetails[]> {
     const supabase = await createServerClient();
@@ -50,6 +50,39 @@ export class ArtistService {
       `
       )
       .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw new ApiError('아티스트 목록 조회 실패', 500, 'ARTISTS_FETCH_FAILED');
+    }
+
+    return data as ArtistWithDetails[];
+  }
+
+  /**
+   * 전체 아티스트 목록 조회 (관리자용, 비활성 포함)
+   */
+  static async getAllArtists(): Promise<ArtistWithDetails[]> {
+    const supabase = await createServerClient();
+
+    const { data, error } = await supabase
+      .from('artists')
+      .select(
+        `
+        *,
+        project:projects!artists_project_id_fkey (
+          id,
+          name,
+          slug
+        ),
+        profile_image:images!artists_profile_image_id_fkey (
+          id,
+          public_url,
+          cdn_url,
+          alt_text
+        )
+      `
+      )
       .order('created_at', { ascending: false });
 
     if (error) {

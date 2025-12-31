@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
 interface Product {
@@ -18,14 +17,14 @@ interface Product {
     public_url: string;
     cdn_url?: string;
   } | null;
-  artist: {
+  project: {
     id: string;
     name: string;
     slug: string;
   } | null;
 }
 
-interface Artist {
+interface Project {
   id: string;
   name: string;
   slug: string;
@@ -33,7 +32,7 @@ interface Artist {
 
 interface ProductsTableProps {
   products: Product[];
-  artists: Artist[];
+  projects: Project[];
 }
 
 const typeLabels: Record<string, string> = {
@@ -41,14 +40,14 @@ const typeLabels: Record<string, string> = {
   PHYSICAL_GOODS: '실물 굿즈',
 };
 
-export function ProductsTable({ products: initialProducts, artists }: ProductsTableProps) {
+export function ProductsTable({ products: initialProducts, projects }: ProductsTableProps) {
   const router = useRouter();
   const [products, setProducts] = useState(initialProducts);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Filters
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [artistFilter, setArtistFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
   const handleDelete = async (product: Product) => {
@@ -80,7 +79,7 @@ export function ProductsTable({ products: initialProducts, artists }: ProductsTa
   // Filter products
   const filteredProducts = products.filter((product) => {
     if (typeFilter !== 'all' && product.type !== typeFilter) return false;
-    if (artistFilter !== 'all' && product.artist?.id !== artistFilter) return false;
+    if (projectFilter !== 'all' && product.project?.id !== projectFilter) return false;
     if (statusFilter === 'active' && !product.is_active) return false;
     if (statusFilter === 'inactive' && product.is_active) return false;
     return true;
@@ -101,14 +100,14 @@ export function ProductsTable({ products: initialProducts, artists }: ProductsTa
         </select>
 
         <select
-          value={artistFilter}
-          onChange={(e) => setArtistFilter(e.target.value)}
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
           className="rounded-md border-gray-300 py-2 pl-3 pr-10 text-sm focus:border-blue-500 focus:ring-blue-500"
         >
-          <option value="all">전체 아티스트</option>
-          {artists.map((artist) => (
-            <option key={artist.id} value={artist.id}>
-              {artist.name}
+          <option value="all">전체 프로젝트</option>
+          {projects.map((project) => (
+            <option key={project.id} value={project.id}>
+              {project.name}
             </option>
           ))}
         </select>
@@ -142,7 +141,7 @@ export function ProductsTable({ products: initialProducts, artists }: ProductsTa
                       타입
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                      아티스트
+                      프로젝트
                     </th>
                     <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                       가격
@@ -171,11 +170,9 @@ export function ProductsTable({ products: initialProducts, artists }: ProductsTa
                         <td className="whitespace-nowrap py-4 pl-4 pr-3 sm:pl-6">
                           <div className="h-10 w-16 flex-shrink-0">
                             {product.main_image ? (
-                              <Image
+                              <img
                                 src={product.main_image.cdn_url || product.main_image.public_url}
                                 alt={product.name}
-                                width={64}
-                                height={40}
                                 className="h-10 w-16 rounded object-cover"
                               />
                             ) : (
@@ -190,7 +187,7 @@ export function ProductsTable({ products: initialProducts, artists }: ProductsTa
                           {typeLabels[product.type]}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                          {product.artist?.name || '-'}
+                          {product.project?.name || '-'}
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {product.price.toLocaleString()}원

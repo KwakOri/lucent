@@ -1,20 +1,20 @@
 import { createServerClient } from '@/lib/server/utils/supabase';
 import { ProductForm } from '@/src/components/admin/products/ProductForm';
 
-async function getArtists() {
+async function getProjects() {
   const supabase = await createServerClient();
 
-  const { data: artists } = await supabase
-    .from('artists')
+  const { data: projects } = await supabase
+    .from('projects')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name', { ascending: true });
 
-  return artists || [];
+  return projects || [];
 }
 
 export default async function NewProductPage() {
-  const artists = await getArtists();
+  const projects = await getProjects();
 
   return (
     <div>
@@ -25,7 +25,7 @@ export default async function NewProductPage() {
         </p>
       </div>
 
-      <ProductForm artists={artists} />
+      <ProductForm projects={projects} />
     </div>
   );
 }

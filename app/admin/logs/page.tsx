@@ -1,67 +1,18 @@
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { LogService } from '@/lib/server/services/log.service';
 import { LogsTable } from '@/src/components/admin/logs/LogsTable';
 
-async function getLogs() {
-  const supabase = await createServerClient();
-
-  const { data: logs } = await supabase
-    .from('logs')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(100);
-
-  return logs || [];
-}
-
-async function getLogStats() {
-  const supabase = await createServerClient();
-
-  // 최근 24시간 로그 통계
-  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-  const { count: totalCount } = await supabase
-    .from('logs')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', oneDayAgo);
-
-  const { count: authCount } = await supabase
-    .from('logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('category', 'AUTH')
-    .gte('created_at', oneDayAgo);
-
-  const { count: orderCount } = await supabase
-    .from('logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('category', 'ORDER')
-    .gte('created_at', oneDayAgo);
-
-  const { count: downloadCount } = await supabase
-    .from('logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('category', 'DOWNLOAD')
-    .gte('created_at', oneDayAgo);
-
-  const { count: securityCount } = await supabase
-    .from('logs')
-    .select('*', { count: 'exact', head: true })
-    .eq('category', 'SECURITY')
-    .gte('created_at', oneDayAgo);
-
-  return {
-    total: totalCount || 0,
-    auth: authCount || 0,
-    order: orderCount || 0,
-    download: downloadCount || 0,
-    security: securityCount || 0,
-  };
-}
-
 export default async function AdminLogsPage() {
-  const [logs, stats] = await Promise.all([
-    getLogs(),
-    getLogStats(),
-  ]);
+  const { logs } = await LogService.getLogs({ limit: 100 });
+
+  // 최근 24시간 로그 통계는 아직 LogService에 메서드가 없으므로 임시로 0 처리
+  // TODO: LogService에 getStats 메서드 추가
+  const stats = {
+    total: logs.length,
+    auth: logs.filter(l => l.event_category === 'AUTH').length,
+    order: logs.filter(l => l.event_category === 'ORDER').length,
+    download: logs.filter(l => l.event_category === 'DOWNLOAD').length,
+    security: logs.filter(l => l.event_category === 'SECURITY').length,
+  };
 
   return (
     <div>
@@ -77,7 +28,7 @@ export default async function AdminLogsPage() {
       <div className="mb-8 bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h3 className="text-base font-semibold leading-6 text-gray-900 mb-4">
-            📊 로그 통계 (최근 24시간)
+            📊 로그 통계 (최근 100개)
           </h3>
           <dl className="grid grid-cols-1 gap-5 sm:grid-cols-5">
             <div className="overflow-hidden rounded-lg bg-gray-50 px-4 py-5">

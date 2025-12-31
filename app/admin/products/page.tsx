@@ -21,7 +21,7 @@ async function getProducts() {
         public_url,
         cdn_url
       ),
-      artist:artists!artist_id (
+      project:projects!project_id (
         id,
         name,
         slug
@@ -32,22 +32,22 @@ async function getProducts() {
   return products || [];
 }
 
-async function getArtists() {
+async function getProjects() {
   const supabase = await createServerClient();
 
-  const { data: artists } = await supabase
-    .from('artists')
+  const { data: projects } = await supabase
+    .from('projects')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name', { ascending: true });
 
-  return artists || [];
+  return projects || [];
 }
 
 export default async function AdminProductsPage() {
-  const [products, artists] = await Promise.all([
+  const [products, projects] = await Promise.all([
     getProducts(),
-    getArtists(),
+    getProjects(),
   ]);
 
   return (
@@ -71,7 +71,7 @@ export default async function AdminProductsPage() {
       </div>
 
       {/* Products Table */}
-      <ProductsTable products={products} artists={artists} />
+      <ProductsTable products={products} projects={projects} />
     </div>
   );
 }

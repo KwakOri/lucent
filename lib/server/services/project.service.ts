@@ -63,6 +63,34 @@ export class ProjectService {
   }
 
   /**
+   * 전체 프로젝트 목록 조회 (관리자용, 비활성 포함)
+   */
+  static async getAllProjects(): Promise<ProjectWithDetails[]> {
+    const supabase = await createServerClient();
+
+    const { data, error } = await supabase
+      .from('projects')
+      .select(
+        `
+        *,
+        cover_image:images!projects_cover_image_id_fkey (
+          id,
+          public_url,
+          cdn_url,
+          alt_text
+        )
+      `
+      )
+      .order('order_index', { ascending: true });
+
+    if (error) {
+      throw new ApiError('프로젝트 목록 조회 실패', 500, 'PROJECTS_FETCH_FAILED');
+    }
+
+    return data as ProjectWithDetails[];
+  }
+
+  /**
    * 프로젝트 상세 조회
    */
   static async getProjectById(id: string): Promise<ProjectWithDetails> {

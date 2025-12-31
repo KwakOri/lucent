@@ -1,35 +1,9 @@
 import Link from 'next/link';
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { ArtistService } from '@/lib/server/services/artist.service';
 import { ArtistsTable } from '@/src/components/admin/artists/ArtistsTable';
 
-async function getArtists() {
-  const supabase = await createServerClient();
-
-  const { data: artists } = await supabase
-    .from('artists')
-    .select(`
-      id,
-      name,
-      slug,
-      is_active,
-      created_at,
-      profile_image:images!profile_image_id (
-        id,
-        public_url,
-        cdn_url
-      ),
-      project:projects!project_id (
-        id,
-        name
-      )
-    `)
-    .order('created_at', { ascending: false });
-
-  return artists || [];
-}
-
 export default async function AdminArtistsPage() {
-  const artists = await getArtists();
+  const artists = await ArtistService.getAllArtists();
 
   return (
     <div>

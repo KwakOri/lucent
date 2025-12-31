@@ -1,37 +1,7 @@
 import { notFound } from 'next/navigation';
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { ArtistService } from '@/lib/server/services/artist.service';
+import { ProjectService } from '@/lib/server/services/project.service';
 import { ArtistForm } from '@/src/components/admin/artists/ArtistForm';
-
-async function getArtist(id: string) {
-  const supabase = await createServerClient();
-
-  const { data: artist } = await supabase
-    .from('artists')
-    .select(`
-      *,
-      profile_image:images!profile_image_id (
-        id,
-        public_url,
-        cdn_url
-      )
-    `)
-    .eq('id', id)
-    .single();
-
-  return artist;
-}
-
-async function getProjects() {
-  const supabase = await createServerClient();
-
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, name, slug')
-    .eq('is_active', true)
-    .order('name', { ascending: true });
-
-  return projects || [];
-}
 
 export default async function EditArtistPage({
   params,
@@ -39,12 +9,16 @@ export default async function EditArtistPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [artist, projects] = await Promise.all([
-    getArtist(id),
-    getProjects(),
-  ]);
 
-  if (!artist) {
+  let artist;
+  let projects;
+
+  try {
+    [artist, projects] = await Promise.all([
+      ArtistService.getArtistById(id),
+      ProjectService.getProjects(),
+    ]);
+  } catch (error) {
     notFound();
   }
 

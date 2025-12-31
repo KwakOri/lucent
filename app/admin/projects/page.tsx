@@ -1,32 +1,9 @@
 import Link from 'next/link';
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { ProjectService } from '@/lib/server/services/project.service';
 import { ProjectsTable } from '@/src/components/admin/projects/ProjectsTable';
 
-async function getProjects() {
-  const supabase = await createServerClient();
-
-  const { data: projects } = await supabase
-    .from('projects')
-    .select(`
-      id,
-      name,
-      slug,
-      order_index,
-      is_active,
-      created_at,
-      cover_image:images!cover_image_id (
-        id,
-        public_url,
-        cdn_url
-      )
-    `)
-    .order('order_index', { ascending: true });
-
-  return projects || [];
-}
-
 export default async function AdminProjectsPage() {
-  const projects = await getProjects();
+  const projects = await ProjectService.getAllProjects();
 
   return (
     <div>

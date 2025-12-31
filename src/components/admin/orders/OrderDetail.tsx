@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 
 interface Order {
   id: string;
@@ -203,11 +202,9 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                   <li key={item.id} className="flex py-4">
                     {item.product?.main_image && (
                       <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-                        <Image
+                        <img
                           src={item.product.main_image.cdn_url || item.product.main_image.public_url}
                           alt={item.product.name}
-                          width={64}
-                          height={64}
                           className="h-full w-full object-cover"
                         />
                       </div>

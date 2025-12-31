@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline';
 
@@ -158,11 +157,9 @@ export function ProjectsTable({ projects: initialProjects }: ProjectsTableProps)
                       <td className="whitespace-nowrap px-3 py-4">
                         <div className="h-10 w-16 flex-shrink-0">
                           {project.cover_image ? (
-                            <Image
+                            <img
                               src={project.cover_image.cdn_url || project.cover_image.public_url}
                               alt={project.name}
-                              width={64}
-                              height={40}
                               className="h-10 w-16 rounded object-cover"
                             />
                           ) : (

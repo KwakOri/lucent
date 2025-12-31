@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useRef, ChangeEvent, DragEvent } from 'react';
-import Image from 'next/image';
 
 interface ImageUploadProps {
   imageType: 'project_cover' | 'artist_profile' | 'product_main' | 'product_gallery';
@@ -140,11 +139,10 @@ export function ImageUpload({
         {previewUrl ? (
           <div className="space-y-3">
             <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-              <Image
+              <img
                 src={previewUrl}
                 alt="Preview"
-                fill
-                className="object-contain"
+                className="w-full h-full object-contain"
               />
             </div>
             {!isUploading && (

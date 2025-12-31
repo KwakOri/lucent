@@ -1,20 +1,8 @@
-import { createServerClient } from '@/lib/server/utils/supabase';
+import { ProjectService } from '@/lib/server/services/project.service';
 import { ArtistForm } from '@/src/components/admin/artists/ArtistForm';
 
-async function getProjects() {
-  const supabase = await createServerClient();
-
-  const { data: projects } = await supabase
-    .from('projects')
-    .select('id, name, slug')
-    .eq('is_active', true)
-    .order('name', { ascending: true });
-
-  return projects || [];
-}
-
 export default async function NewArtistPage() {
-  const projects = await getProjects();
+  const projects = await ProjectService.getProjects();
 
   return (
     <div>
