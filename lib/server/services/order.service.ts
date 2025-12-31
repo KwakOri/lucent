@@ -573,7 +573,10 @@ export class OrderService {
       );
     }
 
-    // 6. Presigned URL 생성 (R2)
+    // 6. 파일명 생성 (상품명 + .zip)
+    const filename = `${product.name.replace(/[^a-zA-Z0-9가-힣\s]/g, '_')}.zip`;
+
+    // 7. Presigned URL 생성 (R2)
     const { generateSignedUrl } = await import('@/lib/server/utils/r2');
 
     // R2 키 추출 (URL에서 경로 부분만)
@@ -584,9 +587,10 @@ export class OrderService {
     const downloadUrl = await generateSignedUrl({
       key: r2Key,
       expiresIn,
+      filename, // Content-Disposition 헤더에 사용될 파일명
     });
 
-    // 7. 다운로드 횟수 증가 및 마지막 다운로드 시간 업데이트
+    // 8. 다운로드 횟수 증가 및 마지막 다운로드 시간 업데이트
     const newDownloadCount = (orderItem.download_count || 0) + 1;
     await supabase
       .from('order_items')
@@ -596,7 +600,7 @@ export class OrderService {
       })
       .eq('id', itemId);
 
-    // 8. 로그 기록
+    // 9. 로그 기록
     await LogService.logDigitalProductDownload(
       product.id,
       orderId,
@@ -607,9 +611,6 @@ export class OrderService {
         downloadCount: newDownloadCount,
       }
     );
-
-    // 9. 파일명 생성 (상품명 + .zip)
-    const filename = `${product.name.replace(/[^a-zA-Z0-9가-힣\s]/g, '_')}.zip`;
 
     return {
       downloadUrl,

@@ -94,6 +94,7 @@ export async function downloadFile(key: string): Promise<Buffer> {
 export interface SignedUrlOptions {
   key: string; // 파일 경로
   expiresIn?: number; // 만료 시간 (초 단위, 기본: 3600초 = 1시간)
+  filename?: string; // 다운로드 파일명 (Content-Disposition 헤더에 사용)
 }
 
 /**
@@ -107,15 +108,22 @@ export interface SignedUrlOptions {
  * @example
  * const downloadUrl = await generateSignedUrl({
  *   key: 'products/voicepacks/miruru-vol1.zip',
- *   expiresIn: 600 // 10분
+ *   expiresIn: 600, // 10분
+ *   filename: '미루루 보이스팩.zip' // 다운로드 파일명
  * });
  */
 export async function generateSignedUrl(options: SignedUrlOptions): Promise<string> {
-  const { key, expiresIn = 3600 } = options;
+  const { key, expiresIn = 3600, filename } = options;
 
   const command = new GetObjectCommand({
     Bucket: BUCKET_NAME,
     Key: key,
+    // Content-Disposition 헤더 설정
+    // - attachment: 브라우저가 파일을 다운로드로 처리 (새 탭에서 열지 않음)
+    // - filename: 다운로드 시 사용할 파일명
+    ResponseContentDisposition: filename
+      ? `attachment; filename="${encodeURIComponent(filename)}"`
+      : 'attachment',
   });
 
   // S3 Presigned URL 생성
