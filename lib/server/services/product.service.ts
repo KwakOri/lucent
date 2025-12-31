@@ -71,7 +71,7 @@ export class ProductService {
       .select(
         `
         *,
-        project:projects!products_project_id_fkey (
+        project:projects (
           id,
           name,
           slug
@@ -134,7 +134,7 @@ export class ProductService {
       .select(
         `
         *,
-        project:projects!products_project_id_fkey (
+        project:projects (
           id,
           name,
           slug,
@@ -163,6 +163,7 @@ export class ProductService {
     }
 
     if (error) {
+      console.error('Product fetch error:', error);
       throw new ApiError('상품 조회 실패', 500, 'PRODUCT_FETCH_FAILED');
     }
 
@@ -180,7 +181,7 @@ export class ProductService {
       .select(
         `
         *,
-        project:projects!products_project_id_fkey (
+        project:projects (
           id,
           name,
           slug
@@ -200,6 +201,7 @@ export class ProductService {
     }
 
     if (error) {
+      console.error('Product fetch by slug error:', error);
       throw new ApiError('상품 조회 실패', 500, 'PRODUCT_FETCH_FAILED');
     }
 
