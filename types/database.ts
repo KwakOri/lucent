@@ -312,7 +312,8 @@ export type Database = {
           created_at: string
           id: string
           order_number: string
-          shipping_address: string | null
+          shipping_main_address: string | null
+          shipping_detail_address: string | null
           shipping_memo: string | null
           shipping_name: string | null
           shipping_phone: string | null
@@ -326,7 +327,8 @@ export type Database = {
           created_at?: string
           id?: string
           order_number: string
-          shipping_address?: string | null
+          shipping_main_address?: string | null
+          shipping_detail_address?: string | null
           shipping_memo?: string | null
           shipping_name?: string | null
           shipping_phone?: string | null
@@ -340,7 +342,8 @@ export type Database = {
           created_at?: string
           id?: string
           order_number?: string
-          shipping_address?: string | null
+          shipping_main_address?: string | null
+          shipping_detail_address?: string | null
           shipping_memo?: string | null
           shipping_name?: string | null
           shipping_phone?: string | null
@@ -458,7 +461,8 @@ export type Database = {
       }
       profiles: {
         Row: {
-          address: string | null
+          main_address: string | null
+          detail_address: string | null
           created_at: string
           email: string
           id: string
@@ -467,7 +471,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          address?: string | null
+          main_address?: string | null
+          detail_address?: string | null
           created_at?: string
           email: string
           id: string
@@ -476,7 +481,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          address?: string | null
+          main_address?: string | null
+          detail_address?: string | null
           created_at?: string
           email?: string
           id?: string

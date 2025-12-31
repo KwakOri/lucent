@@ -37,7 +37,8 @@ export default function CheckoutPage() {
   const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
     name: '',
     phone: '',
-    address: '',
+    mainAddress: '',
+    detailAddress: '',
     memo: '',
   });
   const [agreedToTerms, setAgreedToTerms] = useState(false);
@@ -68,7 +69,8 @@ export default function CheckoutPage() {
   const isShippingValid = !isPhysicalGoods || (
     shippingInfo.name.trim().length >= 2 &&
     /^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/.test(shippingInfo.phone.replace(/-/g, '')) &&
-    shippingInfo.address.trim().length >= 10
+    shippingInfo.mainAddress.trim().length > 0 &&
+    shippingInfo.detailAddress.trim().length >= 2
   );
 
   const isFormValid = agreedToTerms && isBuyerInfoValid && isShippingValid;
@@ -91,7 +93,8 @@ export default function CheckoutPage() {
     if (isPhysicalGoods) {
       orderData.shippingName = shippingInfo.name;
       orderData.shippingPhone = shippingInfo.phone;
-      orderData.shippingAddress = shippingInfo.address;
+      orderData.shippingMainAddress = shippingInfo.mainAddress;
+      orderData.shippingDetailAddress = shippingInfo.detailAddress;
       if (shippingInfo.memo) {
         orderData.shippingMemo = shippingInfo.memo;
       }

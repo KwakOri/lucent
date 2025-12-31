@@ -31,7 +31,8 @@ interface CreateOrderInput {
   buyerPhone?: string;
   shippingName?: string;
   shippingPhone?: string;
-  shippingAddress?: string;
+  shippingMainAddress?: string;
+  shippingDetailAddress?: string;
   shippingMemo?: string;
 }
 
@@ -62,7 +63,8 @@ export class OrderService {
       buyerPhone,
       shippingName,
       shippingPhone,
-      shippingAddress,
+      shippingMainAddress,
+      shippingDetailAddress,
       shippingMemo
     } = input;
 
@@ -121,7 +123,8 @@ export class OrderService {
         buyer_phone: buyerPhone || null,
         shipping_name: shippingName || null,
         shipping_phone: shippingPhone || null,
-        shipping_address: shippingAddress || null,
+        shipping_main_address: shippingMainAddress || null,
+        shipping_detail_address: shippingDetailAddress || null,
         shipping_memo: shippingMemo || null,
       })
       .select()

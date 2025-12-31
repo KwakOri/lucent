@@ -18,7 +18,8 @@ import type { AddressSearchResult } from '@/types/address';
 export interface ShippingInfo {
   name: string;
   phone: string;
-  address: string;
+  mainAddress: string;
+  detailAddress: string;
   memo: string;
 }
 
@@ -39,7 +40,8 @@ export function ShippingForm({
   const [values, setValues] = useState<ShippingInfo>({
     name: initialValues?.name || '',
     phone: initialValues?.phone || '',
-    address: initialValues?.address || '',
+    mainAddress: initialValues?.mainAddress || '',
+    detailAddress: initialValues?.detailAddress || '',
     memo: initialValues?.memo || '',
   });
 
@@ -75,11 +77,17 @@ export function ShippingForm({
         }
         break;
 
-      case 'address':
+      case 'mainAddress':
         if (!value.trim()) {
-          error = '배송 주소를 입력해주세요';
-        } else if (value.length < 10) {
-          error = '상세한 주소를 입력해주세요';
+          error = '주소를 검색하여 선택해주세요';
+        }
+        break;
+
+      case 'detailAddress':
+        if (!value.trim()) {
+          error = '상세 주소를 입력해주세요';
+        } else if (value.length < 2) {
+          error = '상세 주소를 2자 이상 입력해주세요';
         }
         break;
     }
@@ -106,7 +114,7 @@ export function ShippingForm({
       ? `[${address.zonecode}] ${selectedAddress}`
       : selectedAddress;
 
-    handleChange('address', fullAddress);
+    handleChange('mainAddress', fullAddress);
   };
 
   return (
@@ -156,10 +164,10 @@ export function ShippingForm({
 
       <FormField
         label="배송 주소"
-        htmlFor="shippingAddress"
+        htmlFor="shippingMainAddress"
         required
-        error={errors.address}
-        help="주소 검색 후 상세 주소(동/호수)를 추가로 입력하세요"
+        error={errors.mainAddress}
+        help="주소 검색 버튼을 눌러 주소를 선택하세요"
       >
         <div className="space-y-2">
           <Button
@@ -172,17 +180,37 @@ export function ShippingForm({
             <Search size={18} />
             <span className="ml-2">주소 검색</span>
           </Button>
-          <Textarea
-            id="shippingAddress"
-            name="shippingAddress"
-            placeholder="주소 검색 버튼을 눌러 기본 주소를 입력하고, 상세 주소(동/호수)를 추가로 입력하세요"
-            value={values.address}
-            onChange={(e) => handleChange('address', e.target.value)}
-            error={!!errors.address}
-            rows={3}
+          <Input
+            id="shippingMainAddress"
+            name="shippingMainAddress"
+            placeholder="주소 검색 버튼을 눌러 주소를 선택하세요"
+            value={values.mainAddress}
+            readOnly
+            error={!!errors.mainAddress}
+            className="bg-gray-50 cursor-not-allowed"
           />
         </div>
       </FormField>
+
+      {values.mainAddress && (
+        <FormField
+          label="상세 주소"
+          htmlFor="shippingDetailAddress"
+          required
+          error={errors.detailAddress}
+          help="동/호수 등 상세 주소를 입력하세요"
+        >
+          <Input
+            id="shippingDetailAddress"
+            name="shippingDetailAddress"
+            placeholder="예: 101동 202호"
+            value={values.detailAddress}
+            onChange={(e) => handleChange('detailAddress', e.target.value)}
+            error={!!errors.detailAddress}
+            autoFocus
+          />
+        </FormField>
+      )}
 
       <FormField
         label="배송 메모"
