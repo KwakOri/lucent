@@ -17,7 +17,8 @@
       "Bash(do if [ -f \"$file\" ])",
       "Bash(then grep -A 2 \"export const AllVariants\" \"$file\")",
       "Bash({} ;)",
-      "Bash(npm run dev:*)"
+      "Bash(npm run dev:*)",
+      "Bash(git add:*)"
     ]
   }
 }
