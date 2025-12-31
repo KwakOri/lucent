@@ -1,11 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ImageUpload } from '@/src/components/admin/ImageUpload';
 
 interface Project {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface Artist {
   id: string;
   name: string;
   slug: string;
@@ -44,6 +50,7 @@ export function ProductForm({ projects, product }: ProductFormProps) {
     slug: product?.slug || '',
     type: product?.type || 'VOICE_PACK' as 'VOICE_PACK' | 'PHYSICAL_GOODS',
     project_id: product?.project_id || projects[0]?.id || '',
+    artist_id: product?.artist_id || '',
     main_image_id: product?.main_image_id || '',
     price: product?.price || 0,
     description: product?.description || '',
@@ -55,6 +62,37 @@ export function ProductForm({ projects, product }: ProductFormProps) {
   // 보이스팩 파일 상태
   const [mainFile, setMainFile] = useState<File | null>(null);
   const [sampleFile, setSampleFile] = useState<File | null>(null);
+
+  // 아티스트 목록 상태
+  const [artists, setArtists] = useState<Artist[]>([]);
+  const [isLoadingArtists, setIsLoadingArtists] = useState(false);
+
+  // 프로젝트 변경 시 아티스트 목록 로드
+  useEffect(() => {
+    if (!formData.project_id) return;
+
+    const loadArtists = async () => {
+      setIsLoadingArtists(true);
+      try {
+        const response = await fetch(`/api/artists?projectId=${formData.project_id}`);
+        if (!response.ok) throw new Error('아티스트 목록 조회 실패');
+        const data = await response.json();
+        setArtists(data.data || []);
+
+        // 첫 번째 아티스트 자동 선택 (신규 생성 시)
+        if (!product && data.data && data.data.length > 0) {
+          setFormData(prev => ({ ...prev, artist_id: data.data[0].id }));
+        }
+      } catch (error) {
+        console.error('아티스트 목록 로드 실패:', error);
+        setArtists([]);
+      } finally {
+        setIsLoadingArtists(false);
+      }
+    };
+
+    loadArtists();
+  }, [formData.project_id, product]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,11 +114,15 @@ export function ProductForm({ projects, product }: ProductFormProps) {
           throw new Error('보이스팩 파일은 필수입니다');
         }
 
+        if (!formData.artist_id) {
+          throw new Error('아티스트를 선택해주세요');
+        }
+
         const formDataToSend = new FormData();
         formDataToSend.append('name', formData.name);
         formDataToSend.append('slug', formData.slug);
         formDataToSend.append('type', formData.type);
-        formDataToSend.append('artistId', formData.project_id); // TODO: artist_id 별도 필드 필요
+        formDataToSend.append('artistId', formData.artist_id);
         formDataToSend.append('projectId', formData.project_id);
         formDataToSend.append('price', formData.price.toString());
         if (formData.description) {
@@ -164,7 +206,7 @@ export function ProductForm({ projects, product }: ProductFormProps) {
             id="project_id"
             required
             value={formData.project_id}
-            onChange={(e) => setFormData({ ...formData, project_id: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, project_id: e.target.value, artist_id: '' })}
             className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6"
           >
             {projects.map((project) => (
@@ -173,6 +215,38 @@ export function ProductForm({ projects, product }: ProductFormProps) {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* 아티스트 */}
+        <div>
+          <label htmlFor="artist_id" className="block text-sm font-medium leading-6 text-gray-900">
+            아티스트 <span className="text-red-500">*</span>
+          </label>
+          {isLoadingArtists ? (
+            <div className="mt-2 text-sm text-gray-500">아티스트 목록 로딩 중...</div>
+          ) : artists.length === 0 ? (
+            <div className="mt-2 text-sm text-red-600">
+              해당 프로젝트에 아티스트가 없습니다. 아티스트를 먼저 생성해주세요.
+            </div>
+          ) : (
+            <select
+              id="artist_id"
+              required
+              value={formData.artist_id}
+              onChange={(e) => setFormData({ ...formData, artist_id: e.target.value })}
+              disabled={!!product}
+              className="mt-2 block w-full rounded-md border-0 py-1.5 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-blue-600 sm:text-sm sm:leading-6 disabled:bg-gray-100"
+            >
+              {artists.map((artist) => (
+                <option key={artist.id} value={artist.id}>
+                  {artist.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {product && (
+            <p className="mt-1 text-sm text-gray-500">아티스트는 변경할 수 없습니다</p>
+          )}
         </div>
 
         {/* 상품명 */}

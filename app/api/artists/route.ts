@@ -13,10 +13,16 @@ import type { CreateArtistRequest } from '@/types/api';
 
 /**
  * 아티스트 목록 조회
+ *
+ * Query params:
+ * - projectId: 프로젝트 ID로 필터링
  */
 export async function GET(request: NextRequest) {
   try {
-    const artists = await ArtistService.getArtists();
+    const { searchParams } = request.nextUrl;
+    const projectId = searchParams.get('projectId') || undefined;
+
+    const artists = await ArtistService.getArtists({ projectId });
     return successResponse(artists);
   } catch (error) {
     return handleApiError(error);

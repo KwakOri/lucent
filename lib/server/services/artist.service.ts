@@ -28,11 +28,13 @@ interface ArtistWithDetails extends Artist {
 export class ArtistService {
   /**
    * 아티스트 목록 조회 (활성화된 것만)
+   *
+   * @param options.projectId - 프로젝트 ID로 필터링
    */
-  static async getArtists(): Promise<ArtistWithDetails[]> {
+  static async getArtists(options?: { projectId?: string }): Promise<ArtistWithDetails[]> {
     const supabase = await createServerClient();
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('artists')
       .select(
         `
@@ -49,8 +51,14 @@ export class ArtistService {
         )
       `
       )
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .eq('is_active', true);
+
+    // 프로젝트 필터링
+    if (options?.projectId) {
+      query = query.eq('project_id', options.projectId);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       throw new ApiError('아티스트 목록 조회 실패', 500, 'ARTISTS_FETCH_FAILED');
