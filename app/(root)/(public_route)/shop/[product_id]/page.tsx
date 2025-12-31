@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, ShoppingCart, ArrowLeft, Package } from 'lucide-react';
+import { Play, Pause, ShoppingCart, ArrowLeft, Package, Volume2, VolumeX } from 'lucide-react';
 import { useProduct } from '@/hooks';
 
 export default function ProductDetailPage() {
@@ -17,10 +17,19 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading, error } = useProduct(productId);
   const [isPlayingSample, setIsPlayingSample] = useState(false);
+  const [volume, setVolume] = useState(0.7); // 기본 음량 70%
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const isVoicePack = product?.type === 'VOICE_PACK';
   const isPhysicalGoods = product?.type === 'PHYSICAL_GOODS';
+
+  // 초기 음량 설정 로드 (localStorage)
+  useEffect(() => {
+    const savedVolume = localStorage.getItem('sampleVolume');
+    if (savedVolume !== null) {
+      setVolume(parseFloat(savedVolume));
+    }
+  }, []);
 
   // Cleanup: 컴포넌트 언마운트 시 오디오 정지
   useEffect(() => {
@@ -44,6 +53,7 @@ export default function ProductDetailPage() {
       // 새로 재생
       try {
         const audio = new Audio(product.sample_audio_url);
+        audio.volume = volume; // 음량 설정
 
         // 재생 시작
         audio.play().catch((error) => {
@@ -74,6 +84,19 @@ export default function ProductDetailPage() {
         setIsPlayingSample(false);
       }
     }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+
+    // 재생 중인 오디오의 음량도 즉시 변경
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+
+    // localStorage에 저장
+    localStorage.setItem('sampleVolume', newVolume.toString());
   };
 
   const handlePurchase = () => {
@@ -183,7 +206,7 @@ export default function ProductDetailPage() {
 
             {/* Sample Play Button for Voice Packs */}
             {isVoicePack && product.sample_audio_url && (
-              <div className="mb-6">
+              <div className="mb-6 space-y-3">
                 <Button
                   intent="secondary"
                   size="lg"
@@ -202,6 +225,41 @@ export default function ProductDetailPage() {
                     </>
                   )}
                 </Button>
+
+                {/* Volume Control */}
+                <div className="flex items-center gap-3 px-2">
+                  <button
+                    onClick={() => {
+                      const newVolume = volume > 0 ? 0 : 0.7;
+                      setVolume(newVolume);
+                      if (audioRef.current) {
+                        audioRef.current.volume = newVolume;
+                      }
+                      localStorage.setItem('sampleVolume', newVolume.toString());
+                    }}
+                    className="text-text-secondary hover:text-text-primary transition-colors"
+                    aria-label={volume > 0 ? '음소거' : '음소거 해제'}
+                  >
+                    {volume > 0 ? (
+                      <Volume2 className="w-5 h-5" />
+                    ) : (
+                      <VolumeX className="w-5 h-5" />
+                    )}
+                  </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    className="flex-1 h-2 bg-neutral-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary-600 [&::-webkit-slider-thumb]:cursor-pointer [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-primary-600 [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                    aria-label="음량 조절"
+                  />
+                  <span className="text-sm text-text-secondary w-10 text-right">
+                    {Math.round(volume * 100)}%
+                  </span>
+                </div>
               </div>
             )}
 
