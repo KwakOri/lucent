@@ -17,7 +17,7 @@ export default function ProductDetailPage() {
 
   const { data: product, isLoading, error } = useProduct(productId);
   const [isPlayingSample, setIsPlayingSample] = useState(false);
-  const [volume, setVolume] = useState(0.7); // 기본 음량 70%
+  const [volume, setVolume] = useState(0.3); // 기본 음량 30%
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const isVoicePack = product?.type === 'VOICE_PACK';
@@ -230,7 +230,7 @@ export default function ProductDetailPage() {
                 <div className="flex items-center gap-3 px-2">
                   <button
                     onClick={() => {
-                      const newVolume = volume > 0 ? 0 : 0.7;
+                      const newVolume = volume > 0 ? 0 : 0.3;
                       setVolume(newVolume);
                       if (audioRef.current) {
                         audioRef.current.volume = newVolume;
