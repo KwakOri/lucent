@@ -5,6 +5,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useMemo,
   type ReactNode,
 } from 'react';
 import type { Modal, ModalContextValue, ModalOptions, ModalProps } from './types';
@@ -47,11 +48,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const value: ModalContextValue = {
-    modals,
-    openModal,
-    closeModal,
-  };
+  const value = useMemo<ModalContextValue>(
+    () => ({
+      modals,
+      openModal,
+      closeModal,
+    }),
+    [modals, openModal, closeModal]
+  );
 
   return (
     <ModalContext.Provider value={value}>
