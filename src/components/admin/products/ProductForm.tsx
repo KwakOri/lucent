@@ -117,6 +117,10 @@ export function ProductForm({ projects, product }: ProductFormProps) {
         if (formData.description) {
           formDataToSend.append('description', formData.description);
         }
+        // 메인 이미지 ID 추가
+        if (formData.main_image_id) {
+          formDataToSend.append('mainImageId', formData.main_image_id);
+        }
         formDataToSend.append('mainFile', mainFile);
         if (sampleFile) {
           formDataToSend.append('sampleFile', sampleFile);
