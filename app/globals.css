@@ -115,6 +115,34 @@
 
   --animate-modal-in: modal-in 0.2s ease-out;
   --animate-modal-out: modal-out 0.2s ease-in;
+
+  /* =========================
+     Toast Animations
+     ========================= */
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+
+  --animate-slide-in: slide-in 0.3s ease-out;
+  --animate-slide-out: slide-out 0.3s ease-in;
 }
 
 /* =========================
