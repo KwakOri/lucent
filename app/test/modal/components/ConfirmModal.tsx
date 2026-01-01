@@ -31,11 +31,11 @@ export function ConfirmModal({
           <p className="text-gray-700">{message}</p>
         </Content>
         <Footer>
-          <Button variant="secondary" onClick={() => onAbort('cancel')}>
+          <Button intent="secondary" onClick={() => onAbort('cancel')}>
             {cancelText}
           </Button>
           <Button
-            variant={tone === 'danger' ? 'danger' : 'primary'}
+            intent={tone === 'danger' ? 'danger' : 'primary'}
             onClick={() => onSubmit('confirm')}
           >
             {confirmText}

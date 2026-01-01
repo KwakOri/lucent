@@ -9,7 +9,7 @@ import type { Modal, ModalOptions, ModalProps } from './types';
 
 interface UseModalReturn {
   openModal: <T = void>(
-    component: React.ComponentType<ModalProps<T>>,
+    component: React.ComponentType<any>,
     options?: ModalOptions
   ) => Promise<T>;
   closeModal: (id?: string) => void;
@@ -29,7 +29,7 @@ export function useModal(): UseModalReturn {
   // openModal 래핑
   const openModal = useCallback(
     async <T = void>(
-      component: React.ComponentType<ModalProps<T>>,
+      component: React.ComponentType<any>,
       options?: ModalOptions
     ): Promise<T> => {
       // 고유 ID 생성
@@ -38,7 +38,7 @@ export function useModal(): UseModalReturn {
 
       try {
         // ID를 options에 포함하여 Context의 openModal 호출
-        const result = await context.openModal(component, { ...options, id });
+        const result = await context.openModal<T>(component, { ...options, id });
         return result;
       } finally {
         // 모달이 닫히면 ID 제거

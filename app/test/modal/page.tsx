@@ -15,7 +15,7 @@ export default function ModalTestPage() {
   // ========================================
   const handleAlertModal = async () => {
     try {
-      const result = await openModal(AlertModal, {
+      const result = await openModal<'confirmed'>(AlertModal, {
         title: '알림',
         message: '이것은 기본 Alert 모달입니다.',
       });
@@ -27,7 +27,7 @@ export default function ModalTestPage() {
 
   const handleConfirmModal = async () => {
     try {
-      const result = await openModal(ConfirmModal, {
+      const result = await openModal<'confirm' | 'cancel'>(ConfirmModal, {
         title: '확인',
         message: '정말 진행하시겠습니까?',
       });
@@ -42,7 +42,7 @@ export default function ModalTestPage() {
 
   const handleFormModal = async () => {
     try {
-      const result = await openModal(FormModal, {
+      const result = await openModal<{ name: string; email: string }>(FormModal, {
         title: '사용자 정보 입력',
       });
       console.log('Form 결과:', result);
@@ -57,7 +57,7 @@ export default function ModalTestPage() {
   // ========================================
   const handleSmallModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Small Modal',
         content: '작은 크기의 모달입니다.',
         size: 'sm',
@@ -70,7 +70,7 @@ export default function ModalTestPage() {
 
   const handleMediumModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Medium Modal',
         content: '중간 크기의 모달입니다.',
         size: 'md',
@@ -83,7 +83,7 @@ export default function ModalTestPage() {
 
   const handleLargeModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Large Modal',
         content: '큰 크기의 모달입니다.',
         size: 'lg',
@@ -96,7 +96,7 @@ export default function ModalTestPage() {
 
   const handleFullModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Full Modal',
         content: '전체 화면 모달입니다.',
         size: 'full',
@@ -112,7 +112,7 @@ export default function ModalTestPage() {
   // ========================================
   const handleCenterModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Center Modal',
         content: '중앙 위치 모달입니다.',
         position: 'center',
@@ -125,7 +125,7 @@ export default function ModalTestPage() {
 
   const handleBottomModal = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Bottom Sheet',
         content: '하단 시트 모달입니다 (모바일용).',
         position: 'bottom',
@@ -142,7 +142,7 @@ export default function ModalTestPage() {
   // ========================================
   const handleDefaultTone = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Default Tone',
         content: '기본 톤의 모달입니다.',
         tone: 'default',
@@ -155,7 +155,7 @@ export default function ModalTestPage() {
 
   const handleDangerTone = async () => {
     try {
-      const result = await openModal(ConfirmModal, {
+      const result = await openModal<'confirm' | 'cancel'>(ConfirmModal, {
         title: '삭제 확인',
         message: '정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
         tone: 'danger',
@@ -170,7 +170,7 @@ export default function ModalTestPage() {
 
   const handleSuccessTone = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Success',
         content: '성공 톤의 모달입니다.',
         tone: 'success',
@@ -183,7 +183,7 @@ export default function ModalTestPage() {
 
   const handleWarningTone = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Warning',
         content: '경고 톤의 모달입니다.',
         tone: 'warning',
@@ -199,7 +199,7 @@ export default function ModalTestPage() {
   // ========================================
   const handleDisableBackdropClick = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'Backdrop Click Disabled',
         content: '배경 클릭으로 닫을 수 없습니다. 버튼을 눌러주세요.',
         disableBackdropClick: true,
@@ -212,7 +212,7 @@ export default function ModalTestPage() {
 
   const handleDisableEscapeKey = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'ESC Key Disabled',
         content: 'ESC 키로 닫을 수 없습니다. 버튼을 눌러주세요.',
         disableEscapeKey: true,
@@ -225,7 +225,7 @@ export default function ModalTestPage() {
 
   const handleBothDisabled = async () => {
     try {
-      const result = await openModal(CustomModal, {
+      const result = await openModal<string>(CustomModal, {
         title: 'All Close Options Disabled',
         content: '배경 클릭과 ESC 키가 모두 비활성화되었습니다. 반드시 버튼을 눌러야 닫힙니다.',
         disableBackdropClick: true,
@@ -244,25 +244,25 @@ export default function ModalTestPage() {
   const handleSequentialModals = async () => {
     try {
       // 첫 번째 모달
-      const result1 = await openModal(ConfirmModal, {
+      const result1 = await openModal<'confirm' | 'cancel'>(ConfirmModal, {
         title: '1단계',
         message: '첫 번째 모달입니다. 계속하시겠습니까?',
       });
 
       if (result1 === 'confirm') {
         // 두 번째 모달
-        const result2 = await openModal(AlertModal, {
+        const result2 = await openModal<'confirmed'>(AlertModal, {
           title: '2단계',
           message: '첫 번째 모달을 확인했습니다!',
         });
 
         // 세 번째 모달 (폼)
-        const result3 = await openModal(FormModal, {
+        const result3 = await openModal<{ name: string; email: string }>(FormModal, {
           title: '3단계',
         });
 
         // 마지막 확인 모달
-        await openModal(AlertModal, {
+        await openModal<'confirmed'>(AlertModal, {
           title: '완료',
           message: `모든 단계가 완료되었습니다!\n이름: ${result3.name}\n이메일: ${result3.email}`,
         });
@@ -274,7 +274,7 @@ export default function ModalTestPage() {
 
   const handleNestedModals = async () => {
     try {
-      const result1 = await openModal(CustomModal, {
+      const result1 = await openModal<string>(CustomModal, {
         title: '부모 모달',
         content: '이 모달에서 다른 모달을 열 수 있습니다.',
       });
@@ -320,16 +320,16 @@ export default function ModalTestPage() {
         <section className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Size Variants</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button onClick={handleSmallModal} variant="secondary" className="w-full">
+            <Button onClick={handleSmallModal} intent="secondary" className="w-full">
               Small
             </Button>
-            <Button onClick={handleMediumModal} variant="secondary" className="w-full">
+            <Button onClick={handleMediumModal} intent="secondary" className="w-full">
               Medium
             </Button>
-            <Button onClick={handleLargeModal} variant="secondary" className="w-full">
+            <Button onClick={handleLargeModal} intent="secondary" className="w-full">
               Large
             </Button>
-            <Button onClick={handleFullModal} variant="secondary" className="w-full">
+            <Button onClick={handleFullModal} intent="secondary" className="w-full">
               Full
             </Button>
           </div>
@@ -341,10 +341,10 @@ export default function ModalTestPage() {
             3. Position Variants
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button onClick={handleCenterModal} variant="secondary" className="w-full">
+            <Button onClick={handleCenterModal} intent="secondary" className="w-full">
               Center
             </Button>
-            <Button onClick={handleBottomModal} variant="secondary" className="w-full">
+            <Button onClick={handleBottomModal} intent="secondary" className="w-full">
               Bottom (Mobile)
             </Button>
           </div>
@@ -354,16 +354,16 @@ export default function ModalTestPage() {
         <section className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">4. Tone Variants</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Button onClick={handleDefaultTone} variant="secondary" className="w-full">
+            <Button onClick={handleDefaultTone} intent="secondary" className="w-full">
               Default
             </Button>
-            <Button onClick={handleDangerTone} variant="danger" className="w-full">
+            <Button onClick={handleDangerTone} intent="danger" className="w-full">
               Danger
             </Button>
-            <Button onClick={handleSuccessTone} variant="secondary" className="w-full">
+            <Button onClick={handleSuccessTone} intent="secondary" className="w-full">
               Success
             </Button>
-            <Button onClick={handleWarningTone} variant="secondary" className="w-full">
+            <Button onClick={handleWarningTone} intent="secondary" className="w-full">
               Warning
             </Button>
           </div>
@@ -375,13 +375,13 @@ export default function ModalTestPage() {
             5. Close Options
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button onClick={handleDisableBackdropClick} variant="secondary" className="w-full">
+            <Button onClick={handleDisableBackdropClick} intent="secondary" className="w-full">
               Disable Backdrop Click
             </Button>
-            <Button onClick={handleDisableEscapeKey} variant="secondary" className="w-full">
+            <Button onClick={handleDisableEscapeKey} intent="secondary" className="w-full">
               Disable ESC Key
             </Button>
-            <Button onClick={handleBothDisabled} variant="danger" className="w-full">
+            <Button onClick={handleBothDisabled} intent="danger" className="w-full">
               Both Disabled
             </Button>
           </div>
@@ -393,10 +393,10 @@ export default function ModalTestPage() {
             6. Advanced Scenarios
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button onClick={handleSequentialModals} variant="primary" className="w-full">
+            <Button onClick={handleSequentialModals} intent="primary" className="w-full">
               순차 모달 (4단계)
             </Button>
-            <Button onClick={handleNestedModals} variant="primary" className="w-full">
+            <Button onClick={handleNestedModals} intent="primary" className="w-full">
               중첩 모달
             </Button>
           </div>

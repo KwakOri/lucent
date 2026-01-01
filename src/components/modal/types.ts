@@ -8,7 +8,7 @@ import type { ReactNode, ComponentType } from 'react';
 
 export interface Modal<T = any> {
   id: string;
-  component: ComponentType<ModalProps<T>>;
+  component: ComponentType<any>;
   options?: ModalOptions;
   resolve: (value: T) => void;
   reject: (reason?: unknown) => void;
@@ -37,7 +37,7 @@ export interface ModalOptions {
 export interface ModalContextValue {
   modals: Modal[];
   openModal: <T = void>(
-    component: ComponentType<ModalProps<T>>,
+    component: ComponentType<any>,
     options?: ModalOptions
   ) => Promise<T>;
   closeModal: (id: string) => void;
@@ -86,7 +86,7 @@ export interface FooterProps {
 // 유틸리티 타입
 // ========================================
 
-export type ModalComponent<T = void> = ComponentType<ModalProps<T>>;
+export type ModalComponent<T = void> = ComponentType<any>;
 
 export type OpenModalFunction = <T = void>(
   component: ModalComponent<T>,

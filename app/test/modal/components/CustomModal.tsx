@@ -51,7 +51,7 @@ export function CustomModal({
           </div>
         </Content>
         <Footer>
-          <Button variant="secondary" onClick={onAbort}>
+          <Button intent="secondary" onClick={onAbort}>
             취소
           </Button>
           <Button onClick={() => onSubmit('completed')}>확인</Button>

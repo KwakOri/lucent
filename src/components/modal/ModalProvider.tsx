@@ -17,7 +17,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
 
   const openModal = useCallback(
     <T = void>(
-      component: React.ComponentType<ModalProps<T>>,
+      component: React.ComponentType<any>,
       options?: ModalOptions
     ): Promise<T> => {
       return new Promise<T>((resolve, reject) => {
