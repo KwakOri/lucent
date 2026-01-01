@@ -277,7 +277,7 @@ const deleteProduct = useMutation({
   message="정말 삭제하시겠습니까? 주문 이력은 그대로 유지됩니다."
   confirmText="삭제"
   cancelText="취소"
-  variant="danger"
+  intent="danger"
   onConfirm={() => deleteProduct.mutate(productId)}
 />
 ```
