@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { NameInput, PhoneInput, AddressInput } from '@/components/form';
 import { useMyProfile, useUpdateProfile } from '@/hooks';
 import { useToast } from '@/src/components/toast';
 
@@ -61,36 +62,17 @@ export default function ProfileEditPage() {
     }
   };
 
-  // 클라이언트 검증
+  // 클라이언트 검증 (기본 검증은 컴포넌트에서 자동 처리)
   const validate = (): boolean => {
     const errors: Record<string, string> = {};
 
-    // 이름 검증
+    // 필수 필드 확인
     if (!formData.name.trim()) {
       errors.name = '이름을 입력해주세요';
-    } else if (formData.name.trim().length < 2) {
-      errors.name = '이름은 2자 이상이어야 합니다';
-    } else if (formData.name.length > 50) {
-      errors.name = '이름은 50자를 초과할 수 없습니다';
-    } else if (!/^[가-힣a-zA-Z\s]+$/.test(formData.name)) {
-      errors.name = '이름은 한글, 영문, 공백만 사용할 수 있습니다';
-    }
-
-    // 전화번호 검증 (선택 사항)
-    if (formData.phone && !/^010-\d{4}-\d{4}$/.test(formData.phone)) {
-      errors.phone = '올바른 전화번호 형식을 입력해주세요 (예: 010-1234-5678)';
     }
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  };
-
-  // 전화번호 자동 포맷팅
-  const formatPhone = (value: string): string => {
-    const numbers = value.replace(/[^0-9]/g, '');
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
   };
 
   // 저장
@@ -196,70 +178,34 @@ export default function ProfileEditPage() {
             </FormField>
 
             {/* 이름 */}
-            <FormField
-              label="이름"
-              htmlFor="name"
+            <NameInput
+              id="name"
+              value={formData.name}
+              onChange={(value) => handleChange('name', value)}
               required
               error={validationErrors.name}
-            >
-              <Input
-                id="name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleChange('name', e.target.value)}
-                placeholder="이름을 입력하세요"
-                error={!!validationErrors.name}
-              />
-            </FormField>
+            />
 
             {/* 전화번호 */}
-            <FormField
-              label="전화번호"
-              htmlFor="phone"
+            <PhoneInput
+              id="phone"
+              value={formData.phone}
+              onChange={(value) => handleChange('phone', value)}
               error={validationErrors.phone}
-              help={!validationErrors.phone ? "하이픈(-)을 포함한 형식으로 입력해주세요" : undefined}
-            >
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
-                placeholder="010-1234-5678"
-                error={!!validationErrors.phone}
-              />
-            </FormField>
+            />
 
-            {/* 주소 - 메인 */}
-            <FormField
-              label="주소"
-              htmlFor="main_address"
-              error={validationErrors.main_address}
-            >
-              <Input
-                id="main_address"
-                type="text"
-                value={formData.main_address}
-                onChange={(e) => handleChange('main_address', e.target.value)}
-                placeholder="기본 주소를 입력하세요"
-                error={!!validationErrors.main_address}
-              />
-            </FormField>
-
-            {/* 주소 - 상세 */}
-            <FormField
-              label="상세 주소"
-              htmlFor="detail_address"
-              error={validationErrors.detail_address}
-            >
-              <Input
-                id="detail_address"
-                type="text"
-                value={formData.detail_address}
-                onChange={(e) => handleChange('detail_address', e.target.value)}
-                placeholder="상세 주소를 입력하세요"
-                error={!!validationErrors.detail_address}
-              />
-            </FormField>
+            {/* 주소 */}
+            <AddressInput
+              mainAddressId="main_address"
+              mainAddressValue={formData.main_address}
+              onMainAddressChange={(value) => handleChange('main_address', value)}
+              mainAddressError={validationErrors.main_address}
+              detailAddressId="detail_address"
+              detailAddressValue={formData.detail_address}
+              onDetailAddressChange={(value) => handleChange('detail_address', value)}
+              detailAddressError={validationErrors.detail_address}
+              showDetailAlways
+            />
           </div>
 
           {/* Action Buttons */}
