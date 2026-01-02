@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { ToastContainer } from './ToastContainer';
 import type { Toast, ToastContextValue, ToastOptions } from './types';
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -13,9 +15,16 @@ const ToastContext = createContext<ToastContextValue | null>(null);
  * - resolve/reject 없음 (사용자 입력 대기 불필요)
  * - 제네릭 타입 없음 (문자열 메시지만 처리)
  * - 단순한 배열 추가/제거만 수행
+ * - 전역 Portal을 Provider 내부에서 직접 렌더링
  */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [mounted, setMounted] = useState(false);
+
+  // 클라이언트 사이드에서만 Portal 렌더링
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Modal과 달리 Promise를 반환하지 않고 ID만 반환
   const addToast = useCallback((message: string, options?: ToastOptions): string => {
@@ -57,9 +66,24 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     [toasts, addToast, removeToast, clearAll]
   );
 
+  // Toast Portal 렌더링
+  const renderToastPortal = () => {
+    if (!mounted || typeof window === 'undefined') {
+      return null;
+    }
+
+    const toastRoot = document.getElementById('toast-root');
+    if (!toastRoot) {
+      return null;
+    }
+
+    return createPortal(<ToastContainer toasts={toasts} />, toastRoot);
+  };
+
   return (
     <ToastContext.Provider value={value}>
       {children}
+      {renderToastPortal()}
     </ToastContext.Provider>
   );
 }

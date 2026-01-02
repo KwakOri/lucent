@@ -4,7 +4,7 @@ import { useToast } from '@/src/components/toast';
 import type { ToastPosition, ToastType } from '@/src/components/toast';
 
 export default function ToastTestPage() {
-  const { showToast, dismissAll, renderToasts } = useToast();
+  const { showToast, dismissAll } = useToast();
 
   const handleShowToast = (type: ToastType, position?: ToastPosition) => {
     const messages = {
@@ -160,7 +160,7 @@ export default function ToastTestPage() {
           <h2 className="text-xl font-semibold mb-4">4. 코드 예시</h2>
           <pre className="bg-gray-900 text-green-400 p-4 rounded overflow-x-auto text-sm">
 {`// 기본 사용
-const { showToast, renderToasts } = useToast();
+const { showToast } = useToast();
 
 // Success
 showToast('저장되었습니다', { type: 'success' });
@@ -175,19 +175,11 @@ showToast('처리 중...', {
   position: 'top-center',
 });
 
-// 렌더링 (필수)
-return (
-  <>
-    <YourComponent />
-    {renderToasts()}
-  </>
-);`}
+// ToastProvider가 전역적으로 렌더링하므로
+// renderToasts() 호출 불필요!`}
           </pre>
         </section>
       </div>
-
-      {/* Toast 렌더링 */}
-      {renderToasts()}
     </div>
   );
 }

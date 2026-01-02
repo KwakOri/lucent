@@ -9,7 +9,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ModalProvider } from '@/components/modal';
-import { ToastProvider } from '@/src/components/toast/ToastProvider';
+import { ToastProvider } from '@/src/components/toast';
 import { useState } from 'react';
 
 export function Providers({ children }: { children: React.ReactNode }) {
