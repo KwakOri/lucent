@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -182,54 +183,83 @@ export default function ProfileEditPage() {
             {/* 이메일 (읽기 전용) */}
             <FormField
               label="이메일"
-              id="email"
-              value={profile.email}
-              disabled
-              helper="이메일은 변경할 수 없습니다"
-            />
+              htmlFor="email"
+              help="이메일은 변경할 수 없습니다"
+            >
+              <Input
+                id="email"
+                type="email"
+                value={profile.email}
+                disabled
+                readOnly
+              />
+            </FormField>
 
             {/* 이름 */}
             <FormField
               label="이름"
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              placeholder="이름을 입력하세요"
-              error={validationErrors.name}
+              htmlFor="name"
               required
-            />
+              error={validationErrors.name}
+            >
+              <Input
+                id="name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                placeholder="이름을 입력하세요"
+                error={!!validationErrors.name}
+              />
+            </FormField>
 
             {/* 전화번호 */}
             <FormField
               label="전화번호"
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
-              placeholder="010-1234-5678"
+              htmlFor="phone"
               error={validationErrors.phone}
-              helper="하이픈(-)을 포함한 형식으로 입력해주세요"
-            />
+              help={!validationErrors.phone ? "하이픈(-)을 포함한 형식으로 입력해주세요" : undefined}
+            >
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
+                placeholder="010-1234-5678"
+                error={!!validationErrors.phone}
+              />
+            </FormField>
 
             {/* 주소 - 메인 */}
             <FormField
               label="주소"
-              id="main_address"
-              value={formData.main_address}
-              onChange={(e) => handleChange('main_address', e.target.value)}
-              placeholder="기본 주소를 입력하세요"
+              htmlFor="main_address"
               error={validationErrors.main_address}
-            />
+            >
+              <Input
+                id="main_address"
+                type="text"
+                value={formData.main_address}
+                onChange={(e) => handleChange('main_address', e.target.value)}
+                placeholder="기본 주소를 입력하세요"
+                error={!!validationErrors.main_address}
+              />
+            </FormField>
 
             {/* 주소 - 상세 */}
             <FormField
               label="상세 주소"
-              id="detail_address"
-              value={formData.detail_address}
-              onChange={(e) => handleChange('detail_address', e.target.value)}
-              placeholder="상세 주소를 입력하세요"
+              htmlFor="detail_address"
               error={validationErrors.detail_address}
-            />
+            >
+              <Input
+                id="detail_address"
+                type="text"
+                value={formData.detail_address}
+                onChange={(e) => handleChange('detail_address', e.target.value)}
+                placeholder="상세 주소를 입력하세요"
+                error={!!validationErrors.detail_address}
+              />
+            </FormField>
           </div>
 
           {/* Action Buttons */}
