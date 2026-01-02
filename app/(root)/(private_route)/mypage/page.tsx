@@ -9,6 +9,7 @@ import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package } from 'lucide-react';
 import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct } from '@/hooks';
+import { useToast } from '@/src/components/toast';
 import type { Enums } from '@/types';
 
 // Order status types
@@ -29,6 +30,7 @@ const ORDER_STATUS_CONFIG: Record<
 
 export default function MyPage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   // API Hooks
   const { session, user, isLoading: isSessionLoading, isAuthenticated } = useSession();
@@ -52,11 +54,11 @@ export default function MyPage() {
       { orderId, itemId },
       {
         onSuccess: () => {
-          alert(`${productName} 다운로드가 시작되었습니다`);
+          showToast(`${productName} 다운로드가 시작되었습니다`, { type: 'success' });
         },
         onError: (error) => {
           console.error('Download failed:', error);
-          alert('다운로드 중 오류가 발생했습니다');
+          showToast('다운로드 중 오류가 발생했습니다', { type: 'error' });
         },
       }
     );
