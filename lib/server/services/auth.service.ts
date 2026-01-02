@@ -337,19 +337,22 @@ export class AuthService {
 
   /**
    * 현재 세션 확인
+   *
+   * 보안: getUser()를 사용하여 Supabase Auth 서버에서 직접 사용자를 인증합니다.
+   * getSession()은 쿠키에서 직접 가져오므로 보안상 사용하지 않습니다.
    */
   static async getSession(): Promise<SessionResponse> {
     const supabase = await createServerClient();
 
-    const { data, error } = await supabase.auth.getSession();
+    // getUser()로 사용자 인증 (Supabase Auth 서버와 통신하여 인증 보장)
+    const { data, error } = await supabase.auth.getUser();
 
-    if (error || !data.session) {
+    if (error || !data.user) {
       return null;
     }
 
     return {
-      user: data.session.user,
-      session: data.session,
+      user: data.user,
     };
   }
 

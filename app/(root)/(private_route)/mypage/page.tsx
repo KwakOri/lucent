@@ -33,7 +33,7 @@ export default function MyPage() {
   const { showToast } = useToast();
 
   // API Hooks
-  const { session, user, isLoading: isSessionLoading, isAuthenticated } = useSession();
+  const { user, isLoading: isSessionLoading, isAuthenticated } = useSession();
   const { data: ordersData, isLoading: isOrdersLoading, error: ordersError } = useMyOrders();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { mutate: download, isPending: isDownloading } = useDownloadDigitalProduct();

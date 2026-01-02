@@ -20,9 +20,10 @@ import { useRouter } from 'next/navigation';
  * 현재 세션 조회 Hook
  *
  * 실시간 세션 변경 감지는 app/providers.tsx에서 전역적으로 처리됨
+ * 보안: getUser()를 통해 인증된 user 정보만 반환
  *
  * @example
- * const { session, user, isLoading, isAuthenticated } = useSession();
+ * const { user, isLoading, isAuthenticated } = useSession();
  */
 export function useSession() {
   const query = useQuery({
@@ -34,8 +35,8 @@ export function useSession() {
       }
       const result: ApiResponse<SessionResponse> = await response.json();
 
-      // API 응답 구조: { status: 'success', data: { user, session } }
-      if (!result.data || !result.data.session) {
+      // API 응답 구조: { status: 'success', data: { user } | null }
+      if (!result.data || !result.data.user) {
         return null;
       }
 
@@ -50,7 +51,6 @@ export function useSession() {
   });
 
   return {
-    session: query.data?.session ?? null,
     user: query.data?.user ?? null,
     isLoading: query.isLoading,
     isAuthenticated: !!query.data?.user,
