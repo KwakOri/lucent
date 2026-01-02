@@ -40,6 +40,11 @@ export function useSession() {
       return result.data;
     },
     retry: false,
+    staleTime: 1000 * 60 * 5, // 5분 (세션 데이터는 자주 변경되지 않음)
+    gcTime: 1000 * 60 * 10, // 10분 (캐시 유지)
+    refetchOnMount: false, // 마운트 시 refetch 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 refetch 방지
+    refetchOnReconnect: false, // 재연결 시 refetch 방지
   });
 
   return {
