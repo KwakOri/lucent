@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Download, LogOut, Package } from 'lucide-react';
+import { Download, LogOut, Package, Settings } from 'lucide-react';
 import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, type OrderWithItems } from '@/hooks';
 import { useToast } from '@/src/components/toast';
 import type { Enums } from '@/types';
@@ -90,24 +90,35 @@ export default function MyPage() {
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Page Header */}
-        <div className="mb-12 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-text-primary mb-2">
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-text-primary">
               마이페이지
             </h1>
-            <p className="text-lg text-text-secondary">
-              {user?.email}
-            </p>
+            <div className="flex items-center gap-3">
+              <Link href="/mypage/profile">
+                <Button
+                  intent="neutral"
+                  size="md"
+                >
+                  <Settings className="w-4 h-4" />
+                  회원정보 수정
+                </Button>
+              </Link>
+              <Button
+                intent="secondary"
+                size="md"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                <LogOut className="w-4 h-4" />
+                {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+              </Button>
+            </div>
           </div>
-          <Button
-            intent="secondary"
-            size="md"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            <LogOut className="w-4 h-4" />
-            {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
-          </Button>
+          <p className="text-lg text-text-secondary">
+            {user?.email}
+          </p>
         </div>
 
         {/* Order List Section */}

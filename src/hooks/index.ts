@@ -36,3 +36,6 @@ export {
 
 // Project Hooks
 export { useProjects, useProject, useProjectBySlug } from './useProjects';
+
+// Profile Hooks
+export { useMyProfile, useUpdateProfile } from './useProfiles';
