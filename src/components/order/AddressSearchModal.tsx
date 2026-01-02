@@ -4,15 +4,15 @@
  * 주소 검색 모달 컴포넌트
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loading } from '@/components/ui/loading';
-import { useAddressSearch } from '@/hooks/useAddressSearch';
-import type { AddressSearchResult } from '@/types/address';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loading } from "@/components/ui/loading";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
+import type { AddressSearchResult } from "@/types/address";
+import { Search, X } from "lucide-react";
+import { useState } from "react";
 
 interface AddressSearchModalProps {
   isOpen: boolean;
@@ -25,7 +25,7 @@ export function AddressSearchModal({
   onClose,
   onSelect,
 }: AddressSearchModalProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const { results, isLoading, error, search, clear } = useAddressSearch();
 
   if (!isOpen) return null;
@@ -38,13 +38,13 @@ export function AddressSearchModal({
   const handleSelect = (address: AddressSearchResult) => {
     onSelect(address);
     clear();
-    setQuery('');
+    setQuery("");
     onClose();
   };
 
   const handleClose = () => {
     clear();
-    setQuery('');
+    setQuery("");
     onClose();
   };
 
@@ -107,9 +107,7 @@ export function AddressSearchModal({
 
           {!isLoading && !error && results.length === 0 && query && (
             <div className="text-center py-8">
-              <p className="text-sm text-gray-500">
-                검색 결과가 없습니다
-              </p>
+              <p className="text-sm text-gray-500">검색 결과가 없습니다</p>
               <p className="text-xs text-gray-400 mt-2">
                 다른 검색어로 시도해보세요
               </p>
@@ -162,9 +160,7 @@ export function AddressSearchModal({
           {!isLoading && !query && (
             <div className="text-center py-8">
               <Search className="mx-auto text-gray-300 mb-3" size={48} />
-              <p className="text-sm text-gray-500">
-                주소를 검색해주세요
-              </p>
+              <p className="text-sm text-gray-500">주소를 검색해주세요</p>
             </div>
           )}
         </div>

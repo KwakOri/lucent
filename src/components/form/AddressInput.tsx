@@ -6,15 +6,15 @@
  * - 기본 주소(검색) + 상세 주소 통합 관리
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search } from 'lucide-react';
-import { FormField } from '@/components/ui/form-field';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { AddressSearchModal } from '@/components/order/AddressSearchModal';
-import type { AddressSearchResult } from '@/types/address';
+import { AddressSearchModal } from "@/components/order/AddressSearchModal";
+import { Button } from "@/components/ui/button";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import type { AddressSearchResult } from "@/types/address";
+import { Search } from "lucide-react";
+import { useState } from "react";
 
 export interface AddressInputProps {
   /**
@@ -88,14 +88,14 @@ export interface AddressInputProps {
 export function AddressInput({
   mainAddressId,
   mainAddressName,
-  mainAddressLabel = '주소',
+  mainAddressLabel = "주소",
   mainAddressValue,
   onMainAddressChange,
   mainAddressError,
 
   detailAddressId,
   detailAddressName,
-  detailAddressLabel = '상세 주소',
+  detailAddressLabel = "상세 주소",
   detailAddressValue,
   onDetailAddressChange,
   detailAddressError,
@@ -103,7 +103,7 @@ export function AddressInput({
   required = false,
   showDetailAlways = false,
   disabled = false,
-  searchButtonText = '주소 검색',
+  searchButtonText = "주소 검색",
 }: AddressInputProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -117,7 +117,7 @@ export function AddressInput({
     onMainAddressChange(fullAddress);
   };
 
-  const showDetailField = showDetailAlways || mainAddressValue.trim() !== '';
+  const showDetailField = showDetailAlways || mainAddressValue.trim() !== "";
 
   return (
     <>
@@ -127,7 +127,11 @@ export function AddressInput({
         htmlFor={mainAddressId}
         required={required}
         error={mainAddressError}
-        help={!mainAddressError ? '주소 검색 버튼을 눌러 주소를 선택하세요' : undefined}
+        help={
+          !mainAddressError
+            ? "주소 검색 버튼을 눌러 주소를 선택하세요"
+            : undefined
+        }
       >
         <div className="space-y-2">
           <Button
@@ -161,7 +165,11 @@ export function AddressInput({
           htmlFor={detailAddressId}
           required={required}
           error={detailAddressError}
-          help={!detailAddressError ? '동/호수 등 상세 주소를 입력하세요' : undefined}
+          help={
+            !detailAddressError
+              ? "동/호수 등 상세 주소를 입력하세요"
+              : undefined
+          }
         >
           <Input
             id={detailAddressId}
