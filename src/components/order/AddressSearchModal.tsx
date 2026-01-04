@@ -7,11 +7,11 @@
 
 "use client";
 
+import type { ModalProps } from "@/components/modal";
+import { Footer, Header, ModalContainer, Overlay } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading } from "@/components/ui/loading";
-import { Overlay, ModalContainer, Header, Footer } from "@/components/modal";
-import type { ModalProps } from "@/components/modal";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import type { AddressSearchResult } from "@/types/address";
 import { Search } from "lucide-react";
@@ -21,7 +21,10 @@ import { useState } from "react";
  * AddressSearchModal Props
  * ModalProps<AddressSearchResult>를 확장하여 모달 시스템과 통합
  */
-export interface AddressSearchModalProps extends ModalProps<AddressSearchResult> {
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface AddressSearchModalProps
+  extends ModalProps<AddressSearchResult> {
   // 모달 시스템에서 자동으로 제공하는 props:
   // - onSubmit: (value: AddressSearchResult) => void
   // - onAbort: (reason?: unknown) => void
@@ -36,6 +39,7 @@ export function AddressSearchModal({
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // 이벤트 전파 차단 (외부 form에 영향 방지)
     await search(query);
   };
 
@@ -162,7 +166,12 @@ export function AddressSearchModal({
 
         {/* Footer */}
         <Footer>
-          <Button intent="neutral" size="md" onClick={handleClose} className="w-full">
+          <Button
+            intent="neutral"
+            size="md"
+            onClick={handleClose}
+            className="w-full"
+          >
             닫기
           </Button>
         </Footer>
