@@ -42,3 +42,13 @@ export { useProjects, useProject, useProjectBySlug } from './useProjects';
 
 // Profile Hooks
 export { useMyProfile, useUpdateProfile } from './useProfiles';
+
+// Cart Hooks
+export {
+  useCart,
+  useCartCount,
+  useAddToCart,
+  useUpdateCartItem,
+  useRemoveCartItem,
+  useClearCart,
+} from './useCart';
