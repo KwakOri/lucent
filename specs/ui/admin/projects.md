@@ -284,7 +284,7 @@ const reorderProjects = useMutation({
   message="정말 삭제하시겠습니까? 연결된 아티스트는 그대로 유지됩니다."
   confirmText="삭제"
   cancelText="취소"
-  variant="danger"
+  intent="danger"
   onConfirm={() => deleteProject.mutate(projectId)}
 />
 ```

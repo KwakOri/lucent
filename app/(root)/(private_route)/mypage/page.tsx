@@ -7,8 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Download, LogOut, Package } from 'lucide-react';
-import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct } from '@/hooks';
+import { Download, LogOut, Package, Settings, X } from 'lucide-react';
+import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/hooks';
+import { useToast } from '@/src/components/toast';
 import type { Enums } from '@/types';
 
 // Order status types
@@ -29,12 +30,14 @@ const ORDER_STATUS_CONFIG: Record<
 
 export default function MyPage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   // API Hooks
-  const { session, user, isLoading: isSessionLoading, isAuthenticated } = useSession();
+  const { user, isLoading: isSessionLoading, isAuthenticated } = useSession();
   const { data: ordersData, isLoading: isOrdersLoading, error: ordersError } = useMyOrders();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { mutate: download, isPending: isDownloading } = useDownloadDigitalProduct();
+  const { mutate: cancelOrder, isPending: isCancelling } = useCancelOrder();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -52,14 +55,30 @@ export default function MyPage() {
       { orderId, itemId },
       {
         onSuccess: () => {
-          alert(`${productName} 다운로드가 시작되었습니다`);
+          showToast(`${productName} 다운로드가 시작되었습니다`, { type: 'success' });
         },
         onError: (error) => {
           console.error('Download failed:', error);
-          alert('다운로드 중 오류가 발생했습니다');
+          showToast('다운로드 중 오류가 발생했습니다', { type: 'error' });
         },
       }
     );
+  };
+
+  const handleCancelOrder = (orderId: string, orderNumber: string) => {
+    if (!confirm(`주문 ${orderNumber}을(를) 취소하시겠습니까?\n\n취소된 주문은 복구할 수 없습니다.`)) {
+      return;
+    }
+
+    cancelOrder(orderId, {
+      onSuccess: (result) => {
+        showToast(result.message, { type: 'success' });
+      },
+      onError: (error) => {
+        console.error('Cancel order failed:', error);
+        showToast(error.message || '주문 취소 중 오류가 발생했습니다', { type: 'error' });
+      },
+    });
   };
 
   const isLoading = isSessionLoading || isOrdersLoading;
@@ -88,24 +107,35 @@ export default function MyPage() {
     <div className="min-h-screen bg-neutral-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Page Header */}
-        <div className="mb-12 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-text-primary mb-2">
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-4xl font-bold text-text-primary">
               마이페이지
             </h1>
-            <p className="text-lg text-text-secondary">
-              {user?.email}
-            </p>
+            <div className="flex items-center gap-3">
+              <Link href="/mypage/profile">
+                <Button
+                  intent="neutral"
+                  size="md"
+                >
+                  <Settings className="w-4 h-4" />
+                  회원정보 수정
+                </Button>
+              </Link>
+              <Button
+                intent="secondary"
+                size="md"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                <LogOut className="w-4 h-4" />
+                {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
+              </Button>
+            </div>
           </div>
-          <Button
-            intent="secondary"
-            size="md"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            <LogOut className="w-4 h-4" />
-            {isLoggingOut ? '로그아웃 중...' : '로그아웃'}
-          </Button>
+          <p className="text-lg text-text-secondary">
+            {user?.email}
+          </p>
         </div>
 
         {/* Order List Section */}
@@ -191,11 +221,23 @@ export default function MyPage() {
 
                   {/* Order Footer */}
                   <div className="pt-4 border-t border-neutral-200 flex items-center justify-between">
-                    <div>
+                    <div className="flex items-center gap-3">
                       {order.shipping_main_address && (
                         <p className="text-sm text-text-secondary">
                           배송지: {order.shipping_main_address} {order.shipping_detail_address || ''}
                         </p>
+                      )}
+                      {/* 취소 버튼 - PENDING 상태일 때만 표시 */}
+                      {order.status === 'PENDING' && (
+                        <Button
+                          intent="secondary"
+                          size="sm"
+                          onClick={() => handleCancelOrder(order.id, order.order_number)}
+                          disabled={isCancelling}
+                        >
+                          <X className="w-4 h-4" />
+                          주문 취소
+                        </Button>
                       )}
                     </div>
                     <p className="text-xl font-bold text-primary-700">
@@ -209,8 +251,8 @@ export default function MyPage() {
         </section>
 
         {/* Digital Products Section */}
-        {orders.some((order:any) =>
-          order.items?.some((item:any) => item.product_type === 'VOICE_PACK')
+        {orders.some((order) =>
+          order.items?.some((item) => item.product_type === 'VOICE_PACK')
         ) && (
           <section>
             <h2 className="text-2xl font-bold text-text-primary mb-6">
@@ -220,11 +262,11 @@ export default function MyPage() {
             <div className="bg-white rounded-xl border border-neutral-200 p-6">
               <div className="space-y-4">
                 {orders
-                  .filter((order:any) => order.status !== 'PENDING')
-                  .flatMap((order:any) =>
+                  .filter((order) => order.status !== 'PENDING')
+                  .flatMap((order) =>
                     order.items
-                      ?.filter((item:any) => item.product_type === 'VOICE_PACK')
-                      .map((item:any) => (
+                      ?.filter((item) => item.product_type === 'VOICE_PACK')
+                      .map((item) => (
                         <div
                           key={`${order.id}-${item.id}`}
                           className="flex items-center justify-between p-4 rounded-lg bg-neutral-50"

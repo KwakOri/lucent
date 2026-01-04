@@ -79,7 +79,7 @@
   </div>
 
   <Link href="/mypage/profile">
-    <Button variant="ghost" size="sm">
+    <Button intent="secondary" size="sm">
       정보 수정
     </Button>
   </Link>
@@ -239,7 +239,7 @@
 ```tsx
 <div className="checkout-actions">
   <Button
-    variant="outline"
+    intent="neutral"
     size="lg"
     onClick={() => router.back()}
   >
@@ -247,7 +247,7 @@
   </Button>
 
   <Button
-    variant="primary"
+    intent="primary"
     size="lg"
     onClick={handleSubmitOrder}
     disabled={!isValid || isLoading}

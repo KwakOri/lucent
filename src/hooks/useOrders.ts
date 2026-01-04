@@ -7,6 +7,7 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { OrdersAPI } from '@/lib/client/api/orders.api';
 import type {
   Tables,
   GetOrdersQuery,
@@ -47,6 +48,7 @@ export function useOrders(params?: GetOrdersQuery) {
       const data: PaginatedResponse<OrderWithItems> = await response.json();
       return data;
     },
+    staleTime: 1000 * 60 * 3, // 3분 (주문 상태가 변경될 수 있음)
   });
 }
 
@@ -69,6 +71,7 @@ export function useOrder(orderId: string | null) {
       return data.data;
     },
     enabled: !!orderId,
+    staleTime: 1000 * 60 * 3, // 3분
   });
 }
 
@@ -179,6 +182,7 @@ export function useMyVoicePacks() {
       }> = await response.json();
       return data.data;
     },
+    staleTime: 1000 * 60 * 5, // 5분 (구매한 보이스팩은 자주 변경되지 않음)
   });
 }
 
@@ -190,4 +194,29 @@ export function useMyVoicePacks() {
  */
 export function useMyOrders(params?: Omit<GetOrdersQuery, 'userId'>) {
   return useOrders(params);
+}
+
+/**
+ * 주문 취소 Hook
+ *
+ * - 입금대기(PENDING) 상태일 때만 취소 가능
+ * - 본인 주문만 취소 가능
+ *
+ * @example
+ * const { mutate: cancelOrder, isPending } = useCancelOrder();
+ * cancelOrder('order-id');
+ */
+export function useCancelOrder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (orderId: string) => {
+      const result = await OrdersAPI.cancelOrder(orderId);
+      return result.data;
+    },
+    onSuccess: () => {
+      // 주문 목록 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+    },
+  });
 }

@@ -6,9 +6,7 @@
 
 'use client';
 
-import { useState } from 'react';
-import { FormField } from '@/components/ui/form-field';
-import { Input } from '@/components/ui/input';
+import { NameInput, EmailInput, PhoneInput } from '@/components/form';
 
 export interface BuyerInfo {
   name: string;
@@ -25,46 +23,9 @@ export function BuyerInfoForm({
   value,
   onChange,
 }: BuyerInfoFormProps) {
-  const [errors, setErrors] = useState<Partial<Record<keyof BuyerInfo, string>>>({});
-
   const handleChange = (field: keyof BuyerInfo, newValue: string) => {
     const newValues = { ...value, [field]: newValue };
     onChange(newValues);
-
-    // 실시간 검증
-    validateField(field, newValue);
-  };
-
-  const validateField = (field: keyof BuyerInfo, value: string) => {
-    let error = '';
-
-    switch (field) {
-      case 'name':
-        if (!value.trim()) {
-          error = '이름을 입력해주세요';
-        } else if (value.length < 2) {
-          error = '이름은 2자 이상이어야 합니다';
-        }
-        break;
-
-      case 'email':
-        if (!value.trim()) {
-          error = '이메일을 입력해주세요';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = '올바른 이메일 형식이 아닙니다';
-        }
-        break;
-
-      case 'phone':
-        if (!value.trim()) {
-          error = '연락처를 입력해주세요';
-        } else if (!/^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$/.test(value.replace(/-/g, ''))) {
-          error = '올바른 연락처 형식이 아닙니다';
-        }
-        break;
-    }
-
-    setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
   return (
@@ -74,55 +35,29 @@ export function BuyerInfoForm({
         <p className="text-sm text-gray-500">정보를 확인하고 수정할 수 있습니다</p>
       </div>
 
-      <FormField
-        label="이름"
-        htmlFor="buyerName"
+      <NameInput
+        id="buyerName"
+        name="buyerName"
+        value={value.name}
+        onChange={(newValue) => handleChange('name', newValue)}
         required
-        error={errors.name}
-      >
-        <Input
-          id="buyerName"
-          name="buyerName"
-          placeholder="이름을 입력하세요"
-          value={value.name}
-          onChange={(e) => handleChange('name', e.target.value)}
-          error={!!errors.name}
-        />
-      </FormField>
+      />
 
-      <FormField
-        label="이메일"
-        htmlFor="buyerEmail"
+      <EmailInput
+        id="buyerEmail"
+        name="buyerEmail"
+        value={value.email}
+        onChange={(newValue) => handleChange('email', newValue)}
         required
-        error={errors.email}
-      >
-        <Input
-          id="buyerEmail"
-          name="buyerEmail"
-          type="email"
-          placeholder="email@example.com"
-          value={value.email}
-          onChange={(e) => handleChange('email', e.target.value)}
-          error={!!errors.email}
-        />
-      </FormField>
+      />
 
-      <FormField
-        label="연락처"
-        htmlFor="buyerPhone"
+      <PhoneInput
+        id="buyerPhone"
+        name="buyerPhone"
+        value={value.phone}
+        onChange={(newValue) => handleChange('phone', newValue)}
         required
-        error={errors.phone}
-      >
-        <Input
-          id="buyerPhone"
-          name="buyerPhone"
-          type="tel"
-          placeholder="010-0000-0000"
-          value={value.phone}
-          onChange={(e) => handleChange('phone', e.target.value)}
-          error={!!errors.phone}
-        />
-      </FormField>
+      />
     </div>
   );
 }

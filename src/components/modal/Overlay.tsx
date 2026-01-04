@@ -31,6 +31,26 @@ export function Overlay({
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [onClose, disableEscapeKey]);
 
+  // 모달 내부 키 이벤트 격리 (외부 form에 전파 방지)
+  useEffect(() => {
+    const modalElement = document.getElementById(id);
+    if (!modalElement) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Enter, Space 등 form submit을 트리거할 수 있는 키들을 모달 내부에서 격리
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.stopPropagation(); // 외부로 전파되지 않도록 차단
+      }
+    };
+
+    // Capture phase에서 이벤트를 먼저 잡아서 처리
+    modalElement.addEventListener('keydown', handleKeyDown, true);
+
+    return () => {
+      modalElement.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [id]);
+
   // 스크롤 잠금
   useEffect(() => {
     // body 스크롤 잠금

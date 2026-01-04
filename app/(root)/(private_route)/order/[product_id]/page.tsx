@@ -19,6 +19,8 @@ import { OrderSummary, ShippingForm, BuyerInfoForm, type ShippingInfo, type Buye
 import { useProduct } from '@/hooks/useProducts';
 import { useCreateOrder } from '@/hooks/useOrders';
 import { useSession } from '@/hooks/useAuth';
+import { useMyProfile } from '@/hooks';
+import { SHIPPING_FEE } from '@/constants';
 
 export default function CheckoutPage() {
   const params = useParams();
@@ -28,6 +30,7 @@ export default function CheckoutPage() {
   const { data: product, isLoading, error } = useProduct(productId);
   const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrder();
   const { user, isLoading: isLoadingUser } = useSession();
+  const { data: profile, isLoading: isLoadingProfile } = useMyProfile();
 
   const [buyerInfo, setBuyerInfo] = useState<BuyerInfo>({
     name: '',
@@ -45,20 +48,33 @@ export default function CheckoutPage() {
 
   // 사용자 정보로 기본값 설정
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
+      // 주문자 정보 설정
       setBuyerInfo({
-        name: (user as any).name || (user as any).user_metadata?.name || '',
-        email: user.email || '',
-        phone: (user as any).phone || (user as any).user_metadata?.phone || '',
+        name: profile.name || '',
+        email: profile.email || user.email || '',
+        phone: profile.phone || '',
       });
+
+      // 배송 정보 설정 (프로필에 주소가 있는 경우)
+      if (profile.main_address) {
+        setShippingInfo((prev) => ({
+          ...prev,
+          name: profile.name || '',
+          phone: profile.phone || '',
+          mainAddress: profile.main_address || '',
+          detailAddress: profile.detail_address || '',
+        }));
+      }
     }
-  }, [user]);
+  }, [user, profile]);
 
   const isPhysicalGoods = product?.type === 'PHYSICAL_GOODS';
   const isOutOfStock = product ? product.stock !== null && product.stock <= 0 : false;
 
-  // 배송비 (향후 동적 계산 가능)
-  const shippingFee = isPhysicalGoods ? 3000 : 0;
+  // 배송비 (실물 굿즈 또는 번들 상품인 경우)
+  const needsShipping = product?.type === 'PHYSICAL_GOODS' || product?.type === 'BUNDLE';
+  const shippingFee = needsShipping ? SHIPPING_FEE : 0;
 
   // 검증
   const isBuyerInfoValid =
@@ -110,7 +126,7 @@ export default function CheckoutPage() {
     });
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loading size="lg" />
@@ -189,6 +205,10 @@ export default function CheckoutPage() {
               <section className="bg-white rounded-lg border border-gray-200 p-6">
                 <ShippingForm
                   initialValues={shippingInfo}
+                  customerInfo={{
+                    name: buyerInfo.name,
+                    phone: buyerInfo.phone,
+                  }}
                   onChange={setShippingInfo}
                 />
               </section>

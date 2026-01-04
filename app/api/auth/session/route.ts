@@ -10,24 +10,17 @@ import { handleApiError, successResponse } from '@/lib/server/utils/api-response
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await AuthService.getSession();
+    const sessionData = await AuthService.getSession();
 
-    if (!session) {
-      return successResponse({
-        user: null,
-        session: null,
-      });
+    if (!sessionData) {
+      return successResponse(null);
     }
 
     return successResponse({
       user: {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.user_metadata?.name,
-      },
-      session: {
-        accessToken: session.session.access_token,
-        expiresAt: session.session.expires_at,
+        id: sessionData.user.id,
+        email: sessionData.user.email,
+        name: sessionData.user.user_metadata?.name,
       },
     });
   } catch (error) {

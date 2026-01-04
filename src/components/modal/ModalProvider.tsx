@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 import React, {
   createContext,
-  useContext,
-  useState,
   useCallback,
+  useContext,
   useMemo,
+  useState,
   type ReactNode,
-} from 'react';
-import type { Modal, ModalContextValue, ModalOptions, ModalProps } from './types';
+} from "react";
+import type { Modal, ModalContextValue, ModalOptions } from "./types";
 
 const ModalContext = createContext<ModalContextValue | null>(null);
 
@@ -16,7 +16,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   const [modals, setModals] = useState<Modal[]>([]);
 
   const openModal = useCallback(
-    <T = void>(
+    <T = void,>(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       component: React.ComponentType<any>,
       options?: ModalOptions
@@ -43,7 +43,7 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     setModals((prev) => {
       const modal = prev.find((m) => m.id === id);
       if (modal) {
-        modal.reject('closed');
+        modal.reject("closed");
       }
       return prev.filter((m) => m.id !== id);
     });
@@ -59,16 +59,14 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <ModalContext.Provider value={value}>
-      {children}
-    </ModalContext.Provider>
+    <ModalContext.Provider value={value}>{children}</ModalContext.Provider>
   );
 }
 
 export function useModalContext() {
   const context = useContext(ModalContext);
   if (!context) {
-    throw new Error('useModalContext must be used within ModalProvider');
+    throw new Error("useModalContext must be used within ModalProvider");
   }
   return context;
 }
