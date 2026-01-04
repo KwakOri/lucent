@@ -66,16 +66,14 @@ export default function CheckoutPage() {
         phone: profile.phone || '',
       });
 
-      // 배송 정보 설정 (프로필에 주소가 있는 경우)
-      if (profile.main_address) {
-        setShippingInfo((prev) => ({
-          ...prev,
-          name: profile.name || '',
-          phone: profile.phone || '',
-          mainAddress: profile.main_address || '',
-          detailAddress: profile.detail_address || '',
-        }));
-      }
+      // 배송 정보 설정 (이름, 전화번호는 항상 설정, 주소는 있는 경우만)
+      setShippingInfo({
+        name: profile.name || '',
+        phone: profile.phone || '',
+        mainAddress: profile.main_address || '',
+        detailAddress: profile.detail_address || '',
+        memo: '',
+      });
     }
   }, [user, profile]);
 
