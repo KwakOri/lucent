@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { useProjects } from "@/hooks";
+import Image from "next/image";
+import Link from "next/link";
 
 // Project display config
 const PROJECT_DISPLAY_CONFIG: Record<
@@ -19,7 +19,7 @@ const PROJECT_DISPLAY_CONFIG: Record<
     };
   }
 > = {
-  "0th": {
+  miruru: {
     bgColor: "#A8D5E2",
     artist: "시로우미 미루루",
     image: "/profilemiruru.png",

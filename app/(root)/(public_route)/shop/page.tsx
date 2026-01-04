@@ -1,23 +1,21 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Loading } from "@/components/ui/loading";
-import { EmptyState } from "@/components/ui/empty-state";
-import { ShoppingCart, Package } from "lucide-react";
-import { useProducts } from "@/hooks";
 import { VoicePackCover } from "@/components/order/VoicePackCover";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Loading } from "@/components/ui/loading";
+import { useProducts } from "@/hooks";
+import { Package, ShoppingCart } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function ShopPage() {
   const router = useRouter();
   const { data: productsData, isLoading, error } = useProducts();
 
   const products = productsData?.data || [];
-  const voicePacks = products.filter((p: any) => p.type === "VOICE_PACK");
-  const physicalGoods = products.filter(
-    (p: any) => p.type === "PHYSICAL_GOODS"
-  );
+  const voicePacks = products.filter((p) => p.type === "VOICE_PACK");
+  const physicalGoods = products.filter((p) => p.type === "PHYSICAL_GOODS");
 
   const handleProductClick = (productId: string) => {
     router.push(`/shop/${productId}`);
@@ -86,7 +84,7 @@ export default function ShopPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {voicePacks.map((pack: any, index: number) => (
+              {voicePacks.map((pack, index) => (
                 <div
                   key={pack.id}
                   className="bg-white rounded-2xl border-2 border-primary-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
@@ -96,7 +94,7 @@ export default function ShopPage() {
                   <VoicePackCover
                     index={index}
                     name={pack.name}
-                    thumbnail={pack.thumbnail_url}
+                    thumbnail={""}
                   />
 
                   {/* Pack Info */}
@@ -148,7 +146,7 @@ export default function ShopPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {physicalGoods.map((goods: any) => (
+              {physicalGoods.map((goods) => (
                 <div
                   key={goods.id}
                   className="bg-neutral-50 rounded-2xl border border-neutral-200 overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"

@@ -1,12 +1,15 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { useLogout, useSession } from "@/lib/client";
+import { useLogout, useSession } from "@/hooks";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function Header() {
-  const { data: user, isLoading } = useSession();
+  const { user, isLoading } = useSession();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   const handleLogout = () => {
