@@ -46,7 +46,7 @@ const statusColors: Record<string, string> = {
   DONE: 'bg-gray-100 text-gray-800',
 };
 
-type Tab = 'pending' | 'ready' | 'shipping';
+type Tab = 'pending' | 'ready' | 'shipping' | 'completed';
 
 export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders);
@@ -84,6 +84,9 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
           (item) => item.item_status === 'PROCESSING' || item.item_status === 'SHIPPED'
         )
       );
+    } else if (activeTab === 'completed') {
+      // 완료: 모든 아이템이 COMPLETED 상태
+      return order.items.every((item) => item.item_status === 'COMPLETED');
     }
     return true;
   });
@@ -246,6 +249,19 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
               `}
             >
               배송 중
+            </button>
+            <button
+              onClick={() => setActiveTab('completed')}
+              className={`
+                whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium
+                ${
+                  activeTab === 'completed'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }
+              `}
+            >
+              완료
             </button>
           </nav>
         </div>
