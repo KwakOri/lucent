@@ -128,7 +128,7 @@
     </dl>
 
     <Button
-      variant="primary"
+      intent="primary"
       fullWidth
       onClick={handleCopyAllInfo}
       leftIcon={<Copy size={18} />}
@@ -315,7 +315,7 @@ const handleCopyAllInfo = () => {
 ```tsx
 <div className="confirmation-actions">
   <Button
-    variant="outline"
+    intent="neutral"
     size="lg"
     onClick={() => router.push(`/mypage/orders/${order.id}`)}
     leftIcon={<FileText size={18} />}
@@ -324,7 +324,7 @@ const handleCopyAllInfo = () => {
   </Button>
 
   <Button
-    variant="primary"
+    intent="primary"
     size="lg"
     onClick={() => router.push('/shop')}
     leftIcon={<ShoppingBag size={18} />}

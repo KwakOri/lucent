@@ -1,14 +1,17 @@
 /**
- * React Query Provider
+ * React Query Provider, Modal Provider & Toast Provider
  *
- * Next.js 15 App Router용 QueryClient Provider
+ * Next.js 15 App Router용 QueryClient Provider, ModalProvider 및 ToastProvider
  */
 
 'use client';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useState } from 'react';
+import { ModalProvider } from '@/components/modal';
+import { ToastProvider } from '@/src/components/toast';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -33,13 +36,34 @@ export function Providers({ children }: { children: React.ReactNode }) {
       })
   );
 
+  // 전역 Supabase Auth 리스너 (앱 전체에서 한 번만 등록)
+  useEffect(() => {
+    const supabase = createClient();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, _session) => {
+      // 세션 변경 감지 시 React Query 캐시 무효화
+      // 모든 useSession 호출이 자동으로 업데이트됨
+      queryClient.invalidateQueries({ queryKey: ['auth', 'session'] });
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [queryClient]);
+
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      {/* 개발 환경에서만 DevTools 표시 */}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
+      <ModalProvider>
+        <ToastProvider>
+          {children}
+          {/* 개발 환경에서만 DevTools 표시 */}
+          {process.env.NODE_ENV === 'development' && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
+        </ToastProvider>
+      </ModalProvider>
     </QueryClientProvider>
   );
 }

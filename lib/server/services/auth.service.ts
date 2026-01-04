@@ -282,12 +282,28 @@ export class AuthService {
     const { email, password } = input;
     const supabase = await createServerClient();
 
+    // 🐛 DEBUG: 로그인 시도
+    console.log('[DEBUG] AuthService.login:', {
+      email,
+      passwordLength: password.length,
+      passwordType: typeof password,
+      ipAddress,
+    });
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
 
     if (error || !data.user) {
+      // 🐛 DEBUG: 로그인 실패 상세 정보
+      console.error('[DEBUG] AuthService.login - Failed:', {
+        email,
+        errorMessage: error?.message,
+        errorCode: error?.status,
+        errorName: error?.name,
+      });
+
       // ✅ 로그 기록 (실패)
       await LogService.logLoginFailed(
         email,
@@ -301,6 +317,13 @@ export class AuthService {
         'INVALID_CREDENTIALS'
       );
     }
+
+    // 🐛 DEBUG: 로그인 성공
+    console.log('[DEBUG] AuthService.login - Success:', {
+      userId: data.user.id,
+      email: data.user.email,
+      sessionExists: !!data.session,
+    });
 
     // ✅ 로그 기록 (성공)
     await LogService.logLoginSuccess(
@@ -337,19 +360,22 @@ export class AuthService {
 
   /**
    * 현재 세션 확인
+   *
+   * 보안: getUser()를 사용하여 Supabase Auth 서버에서 직접 사용자를 인증합니다.
+   * getSession()은 쿠키에서 직접 가져오므로 보안상 사용하지 않습니다.
    */
   static async getSession(): Promise<SessionResponse> {
     const supabase = await createServerClient();
 
-    const { data, error } = await supabase.auth.getSession();
+    // getUser()로 사용자 인증 (Supabase Auth 서버와 통신하여 인증 보장)
+    const { data, error } = await supabase.auth.getUser();
 
-    if (error || !data.session) {
+    if (error || !data.user) {
       return null;
     }
 
     return {
-      user: data.session.user,
-      session: data.session,
+      user: data.user,
     };
   }
 

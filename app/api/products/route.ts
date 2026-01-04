@@ -109,6 +109,7 @@ async function createVoicePackProduct(request: NextRequest) {
     const price = parseInt(formData.get('price') as string);
     const description = formData.get('description') as string | null;
     const projectId = formData.get('projectId') as string | null;
+    const mainImageId = formData.get('mainImageId') as string | null;
 
     // Files
     const mainFile = formData.get('mainFile') as File | null;
@@ -201,6 +202,7 @@ async function createVoicePackProduct(request: NextRequest) {
       price,
       description: description || null,
       project_id: projectId,
+      main_image_id: mainImageId || null,
       digital_file_url: mainFileUrl,
       sample_audio_url: sampleFileUrl,
       is_active: true,

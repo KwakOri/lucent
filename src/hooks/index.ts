@@ -11,6 +11,8 @@ export {
   useSignup,
   useLogout,
   useSendVerification,
+  useVerifyCode,
+  useSignupWithToken,
   useResetPassword,
 } from './useAuth';
 
@@ -31,7 +33,12 @@ export {
   useDownloadDigitalProduct,
   useMyOrders,
   useMyVoicePacks,
+  useCancelOrder,
+  type OrderWithItems,
 } from './useOrders';
 
 // Project Hooks
 export { useProjects, useProject, useProjectBySlug } from './useProjects';
+
+// Profile Hooks
+export { useMyProfile, useUpdateProfile } from './useProfiles';

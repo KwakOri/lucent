@@ -2,65 +2,64 @@
  * AddressSearchModal Component
  *
  * 주소 검색 모달 컴포넌트
+ * 프로젝트 모달 시스템에 통합된 버전
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Loading } from '@/components/ui/loading';
-import { useAddressSearch } from '@/hooks/useAddressSearch';
-import type { AddressSearchResult } from '@/types/address';
+import type { ModalProps } from "@/components/modal";
+import { Footer, Header, ModalContainer, Overlay } from "@/components/modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Loading } from "@/components/ui/loading";
+import { useAddressSearch } from "@/hooks/useAddressSearch";
+import type { AddressSearchResult } from "@/types/address";
+import { Search } from "lucide-react";
+import { useState } from "react";
 
-interface AddressSearchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (address: AddressSearchResult) => void;
+/**
+ * AddressSearchModal Props
+ * ModalProps<AddressSearchResult>를 확장하여 모달 시스템과 통합
+ */
+
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface AddressSearchModalProps
+  extends ModalProps<AddressSearchResult> {
+  // 모달 시스템에서 자동으로 제공하는 props:
+  // - onSubmit: (value: AddressSearchResult) => void
+  // - onAbort: (reason?: unknown) => void
 }
 
 export function AddressSearchModal({
-  isOpen,
-  onClose,
-  onSelect,
+  onSubmit,
+  onAbort,
 }: AddressSearchModalProps) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const { results, isLoading, error, search, clear } = useAddressSearch();
-
-  if (!isOpen) return null;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation(); // 이벤트 전파 차단 (외부 form에 영향 방지)
     await search(query);
   };
 
   const handleSelect = (address: AddressSearchResult) => {
-    onSelect(address);
     clear();
-    setQuery('');
-    onClose();
+    setQuery("");
+    onSubmit(address); // 모달 시스템에 결과 전달
   };
 
   const handleClose = () => {
     clear();
-    setQuery('');
-    onClose();
+    setQuery("");
+    onAbort(); // 모달 시스템에 취소 전달
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <Overlay id="address-search-modal" onClose={handleClose}>
+      <ModalContainer size="lg">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">주소 검색</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+        <Header title="주소 검색" onClose={handleClose} />
 
         {/* Search Form */}
         <div className="p-4 border-b border-gray-200">
@@ -92,7 +91,7 @@ export function AddressSearchModal({
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 max-h-[400px]">
           {isLoading && (
             <div className="flex justify-center py-8">
               <Loading size="md" />
@@ -107,9 +106,7 @@ export function AddressSearchModal({
 
           {!isLoading && !error && results.length === 0 && query && (
             <div className="text-center py-8">
-              <p className="text-sm text-gray-500">
-                검색 결과가 없습니다
-              </p>
+              <p className="text-sm text-gray-500">검색 결과가 없습니다</p>
               <p className="text-xs text-gray-400 mt-2">
                 다른 검색어로 시도해보세요
               </p>
@@ -162,15 +159,13 @@ export function AddressSearchModal({
           {!isLoading && !query && (
             <div className="text-center py-8">
               <Search className="mx-auto text-gray-300 mb-3" size={48} />
-              <p className="text-sm text-gray-500">
-                주소를 검색해주세요
-              </p>
+              <p className="text-sm text-gray-500">주소를 검색해주세요</p>
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
+        <Footer>
           <Button
             intent="neutral"
             size="md"
@@ -179,8 +174,8 @@ export function AddressSearchModal({
           >
             닫기
           </Button>
-        </div>
-      </div>
-    </div>
+        </Footer>
+      </ModalContainer>
+    </Overlay>
   );
 }
