@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ORDER_STATUS_LABELS, ITEM_STATUS_LABELS, PRODUCT_TYPE_LABELS } from '@/src/constants';
 
 interface OrderItem {
   id: string;
@@ -41,29 +42,6 @@ interface OrderDetailProps {
   order: Order;
 }
 
-const statusLabels: Record<string, string> = {
-  PENDING: '입금대기',
-  PAID: '입금완료',
-  MAKING: '제작중',
-  SHIPPING: '배송중',
-  DONE: '완료',
-};
-
-const itemStatusLabels: Record<string, string> = {
-  PENDING: '대기',
-  READY: '준비',
-  PROCESSING: '처리중',
-  SHIPPED: '발송됨',
-  COMPLETED: '완료',
-  CANCELLED: '취소',
-};
-
-const typeLabels: Record<string, string> = {
-  VOICE_PACK: '디지털 상품',
-  PHYSICAL_GOODS: '실물 상품',
-  BUNDLE: '세트 상품',
-};
-
 export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
   const router = useRouter();
   const [order, setOrder] = useState(initialOrder);
@@ -81,7 +59,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
       return;
     }
 
-    if (!confirm(`주문 상태를 "${statusLabels[selectedStatus]}"(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`주문 상태를 "${ORDER_STATUS_LABELS[selectedStatus]}"(으)로 변경하시겠습니까?`)) {
       return;
     }
 
@@ -145,7 +123,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
       return;
     }
 
-    if (!confirm(`선택한 ${selectedItems.size}개 아이템의 상태를 "${itemStatusLabels[selectedItemStatus]}"(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`선택한 ${selectedItems.size}개 아이템의 상태를 "${ITEM_STATUS_LABELS[selectedItemStatus]}"(으)로 변경하시겠습니까?`)) {
       return;
     }
 
@@ -212,7 +190,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="rounded-md bg-white border-2 border-gray-400 text-gray-900 font-medium py-2 pl-3 pr-10 text-sm focus:border-primary-600 focus:ring-2 focus:ring-primary-500"
                 >
-                  {Object.entries(statusLabels).map(([value, label]) => (
+                  {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
                     <option key={value} value={value}>
                       {label}
                     </option>
@@ -286,7 +264,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                       onChange={(e) => setSelectedItemStatus(e.target.value)}
                       className="rounded-md bg-white border border-gray-300 text-gray-900 py-1 pl-2 pr-8 text-xs focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                     >
-                      {Object.entries(itemStatusLabels).map(([value, label]) => (
+                      {Object.entries(ITEM_STATUS_LABELS).map(([value, label]) => (
                         <option key={value} value={value}>
                           {label}
                         </option>
@@ -344,7 +322,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                               <p className="ml-4">{(item.price_snapshot * item.quantity).toLocaleString()}원</p>
                             </div>
                             <p className="mt-1 text-sm text-gray-500">
-                              {typeLabels[item.product_type || '']} • {item.price_snapshot.toLocaleString()}원 × {item.quantity}개
+                              {PRODUCT_TYPE_LABELS[item.product_type || '']} • {item.price_snapshot.toLocaleString()}원 × {item.quantity}개
                             </p>
                             {item.item_status && (
                               <p className="mt-1">
@@ -355,7 +333,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                                       : 'bg-blue-100 text-blue-800'
                                   }`}
                                 >
-                                  {itemStatusLabels[item.item_status] || item.item_status}
+                                  {ITEM_STATUS_LABELS[item.item_status] || item.item_status}
                                 </span>
                                 {isDisabled && (
                                   <span className="ml-2 text-xs text-gray-500">(다운로드 가능)</span>

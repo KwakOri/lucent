@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/src/constants';
 
 interface Order {
   id: string;
@@ -29,22 +30,6 @@ interface Order {
 interface OrdersTableProps {
   orders: Order[];
 }
-
-const statusLabels: Record<string, string> = {
-  PENDING: '입금대기',
-  PAID: '입금완료',
-  MAKING: '제작중',
-  SHIPPING: '배송중',
-  DONE: '완료',
-};
-
-const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  PAID: 'bg-green-100 text-green-800',
-  MAKING: 'bg-blue-100 text-blue-800',
-  SHIPPING: 'bg-purple-100 text-purple-800',
-  DONE: 'bg-gray-100 text-gray-800',
-};
 
 type Tab = 'pending' | 'ready' | 'shipping' | 'completed';
 
@@ -419,8 +404,8 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                           {order.total_price.toLocaleString()}원
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm">
-                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
-                            {statusLabels[order.status] || order.status}
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${ORDER_STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-800'}`}>
+                            {ORDER_STATUS_LABELS[order.status] || order.status}
                           </span>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

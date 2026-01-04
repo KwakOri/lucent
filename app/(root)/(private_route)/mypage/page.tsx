@@ -10,38 +10,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package, Settings, X } from 'lucide-react';
 import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/hooks';
 import { useToast } from '@/src/components/toast';
+import { ORDER_STATUS_CONFIG, ITEM_STATUS_CONFIG } from '@/src/constants';
 import type { Enums } from '@/types';
 
 // Order status types
 type OrderStatus = Enums<'order_status'>;
 type OrderItemStatus = Enums<'order_item_status'>;
-type ProductType = Enums<'product_type'>;
-
-// Order status config
-const ORDER_STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; intent: 'default' | 'success' | 'warning' | 'error' }
-> = {
-  PENDING: { label: '입금대기', intent: 'warning' },
-  PAID: { label: '입금확인', intent: 'default' },
-  MAKING: { label: '제작중', intent: 'warning' },
-  SHIPPING: { label: '발송중', intent: 'success' },
-  DONE: { label: '배송완료', intent: 'default' },
-};
-
-// Order item status config
-const ITEM_STATUS_CONFIG: Record<
-  OrderItemStatus,
-  { label: string; intent: 'default' | 'success' | 'warning' | 'error' }
-> = {
-  PENDING: { label: '대기', intent: 'warning' },
-  READY: { label: '준비완료', intent: 'default' },
-  PROCESSING: { label: '처리중', intent: 'warning' },
-  SHIPPED: { label: '발송됨', intent: 'success' },
-  DELIVERED: { label: '배송완료', intent: 'success' },
-  COMPLETED: { label: '완료', intent: 'success' },
-  CANCELLED: { label: '취소', intent: 'error' },
-};
 
 export default function MyPage() {
   const router = useRouter();
