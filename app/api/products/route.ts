@@ -6,6 +6,11 @@
  */
 
 import { NextRequest } from 'next/server';
+
+// Route Segment Config - 대용량 파일 업로드 지원
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 300; // 5분 타임아웃
 import { ProductService } from '@/lib/server/services/product.service';
 import { handleApiError, paginatedResponse, successResponse } from '@/lib/server/utils/api-response';
 import { isAdmin } from '@/lib/server/utils/supabase';
