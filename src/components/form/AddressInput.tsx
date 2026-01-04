@@ -4,17 +4,18 @@
  * 주소 입력 공통 컴포넌트
  * - Kakao 주소 검색 API 연동
  * - 기본 주소(검색) + 상세 주소 통합 관리
+ * - 모달 시스템 통합
  */
 
 "use client";
 
 import { AddressSearchModal } from "@/components/order/AddressSearchModal";
+import { useModal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import type { AddressSearchResult } from "@/types/address";
 import { Search } from "lucide-react";
-import { useState } from "react";
 
 export interface AddressInputProps {
   /**
@@ -105,16 +106,23 @@ export function AddressInput({
   disabled = false,
   searchButtonText = "주소 검색",
 }: AddressInputProps) {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { openModal, renderModal } = useModal();
 
-  const handleAddressSelect = (address: AddressSearchResult) => {
-    // 도로명 주소가 있으면 도로명 우선, 없으면 지번 주소 사용
-    const selectedAddress = address.roadAddress || address.jibunAddress;
-    const fullAddress = address.zonecode
-      ? `[${address.zonecode}] ${selectedAddress}`
-      : selectedAddress;
+  const handleSearchClick = async () => {
+    try {
+      const address = await openModal<AddressSearchResult>(AddressSearchModal);
 
-    onMainAddressChange(fullAddress);
+      // 도로명 주소가 있으면 도로명 우선, 없으면 지번 주소 사용
+      const selectedAddress = address.roadAddress || address.jibunAddress;
+      const fullAddress = address.zonecode
+        ? `[${address.zonecode}] ${selectedAddress}`
+        : selectedAddress;
+
+      onMainAddressChange(fullAddress);
+    } catch (error) {
+      // 모달이 취소된 경우 (onAbort 호출)
+      // 아무 작업도 하지 않음
+    }
   };
 
   const showDetailField = showDetailAlways || mainAddressValue.trim() !== "";
@@ -138,7 +146,7 @@ export function AddressInput({
             type="button"
             intent="neutral"
             size="md"
-            onClick={() => setIsModalOpen(true)}
+            onClick={handleSearchClick}
             disabled={disabled}
             className="w-full"
           >
@@ -184,12 +192,8 @@ export function AddressInput({
         </FormField>
       )}
 
-      {/* 주소 검색 모달 */}
-      <AddressSearchModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSelect={handleAddressSelect}
-      />
+      {/* 모달 렌더링 */}
+      {renderModal()}
     </>
   );
 }

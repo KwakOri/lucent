@@ -2,6 +2,7 @@
  * AddressSearchModal Component
  *
  * 주소 검색 모달 컴포넌트
+ * 프로젝트 모달 시스템에 통합된 버전
  */
 
 "use client";
@@ -9,26 +10,29 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading } from "@/components/ui/loading";
+import { Overlay, ModalContainer, Header, Footer } from "@/components/modal";
+import type { ModalProps } from "@/components/modal";
 import { useAddressSearch } from "@/hooks/useAddressSearch";
 import type { AddressSearchResult } from "@/types/address";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { useState } from "react";
 
-interface AddressSearchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelect: (address: AddressSearchResult) => void;
+/**
+ * AddressSearchModal Props
+ * ModalProps<AddressSearchResult>를 확장하여 모달 시스템과 통합
+ */
+export interface AddressSearchModalProps extends ModalProps<AddressSearchResult> {
+  // 모달 시스템에서 자동으로 제공하는 props:
+  // - onSubmit: (value: AddressSearchResult) => void
+  // - onAbort: (reason?: unknown) => void
 }
 
 export function AddressSearchModal({
-  isOpen,
-  onClose,
-  onSelect,
+  onSubmit,
+  onAbort,
 }: AddressSearchModalProps) {
   const [query, setQuery] = useState("");
   const { results, isLoading, error, search, clear } = useAddressSearch();
-
-  if (!isOpen) return null;
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,31 +40,22 @@ export function AddressSearchModal({
   };
 
   const handleSelect = (address: AddressSearchResult) => {
-    onSelect(address);
     clear();
     setQuery("");
-    onClose();
+    onSubmit(address); // 모달 시스템에 결과 전달
   };
 
   const handleClose = () => {
     clear();
     setQuery("");
-    onClose();
+    onAbort(); // 모달 시스템에 취소 전달
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+    <Overlay id="address-search-modal" onClose={handleClose}>
+      <ModalContainer size="lg">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">주소 검색</h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
+        <Header title="주소 검색" onClose={handleClose} />
 
         {/* Search Form */}
         <div className="p-4 border-b border-gray-200">
@@ -92,7 +87,7 @@ export function AddressSearchModal({
         </div>
 
         {/* Results */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 max-h-[400px]">
           {isLoading && (
             <div className="flex justify-center py-8">
               <Loading size="md" />
@@ -166,17 +161,12 @@ export function AddressSearchModal({
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-gray-200">
-          <Button
-            intent="neutral"
-            size="md"
-            onClick={handleClose}
-            className="w-full"
-          >
+        <Footer>
+          <Button intent="neutral" size="md" onClick={handleClose} className="w-full">
             닫기
           </Button>
-        </div>
-      </div>
-    </div>
+        </Footer>
+      </ModalContainer>
+    </Overlay>
   );
 }
