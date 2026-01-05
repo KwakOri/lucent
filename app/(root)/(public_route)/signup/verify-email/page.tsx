@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
-import { useVerifyCode, useSignupWithToken } from '@/hooks';
+import { useVerifyCode, useSignupWithToken } from '@/lib/client/hooks';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();

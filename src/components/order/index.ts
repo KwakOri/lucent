@@ -5,6 +5,7 @@
  */
 
 export { OrderSummary } from './OrderSummary';
+export { CartOrderSummary } from './CartOrderSummary';
 export { BankAccountInfo } from './BankAccountInfo';
 export { ShippingForm } from './ShippingForm';
 export type { ShippingInfo } from './ShippingForm';

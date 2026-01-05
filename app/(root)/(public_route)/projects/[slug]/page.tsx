@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ShoppingCart } from 'lucide-react';
-import { useProjectBySlug } from '@/hooks';
+import { useProjectBySlug } from '@/lib/client/hooks';
 
 // Project display config (for UI enhancement)
 const PROJECT_DISPLAY_CONFIG: Record<string, {

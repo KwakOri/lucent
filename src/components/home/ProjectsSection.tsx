@@ -1,6 +1,6 @@
 "use client";
 
-import { useProjects } from "@/hooks";
+import { useProjects } from "@/lib/client/hooks";
 import Link from "next/link";
 
 // Project display config

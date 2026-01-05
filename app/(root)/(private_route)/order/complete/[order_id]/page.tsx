@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Loading } from "@/components/ui/loading";
 import { SHIPPING_FEE } from "@/constants";
-import { useOrder } from "@/hooks/useOrders";
+import { useOrder } from "@/lib/client/hooks/useOrders";
 import { CheckCircle, FileText, ShoppingBag } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";

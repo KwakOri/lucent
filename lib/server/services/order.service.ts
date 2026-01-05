@@ -158,12 +158,12 @@ export class OrderService {
       throw new ApiError("주문 생성 실패", 500, "ORDER_CREATE_FAILED");
     }
 
-    // 주문 항목 상태 결정: 0원이면 즉시 완료, 아니면 입금대기
-    const itemStatus: OrderItemStatus = totalPrice === 0 ? "COMPLETED" : "PENDING";
-
-    // 주문 항목 생성
+    // 주문 항목 생성 (개별 아이템 가격에 따라 상태 결정)
     const orderItems = items.map((item) => {
       const product = products.find((p) => p.id === item.productId);
+      // 개별 아이템이 0원이면 즉시 완료, 아니면 입금대기
+      const itemStatus: OrderItemStatus = product!.price === 0 ? "COMPLETED" : "PENDING";
+
       return {
         order_id: order.id,
         product_id: item.productId,
@@ -374,18 +374,45 @@ export class OrderService {
     }
 
     // v2: order_items의 item_status도 함께 업데이트
-    let itemStatus: OrderItemStatus = "PENDING";
+    // PAID 상태일 때는 디지털/실물 상품을 구분하여 처리
     if (newStatus === "PAID") {
-      itemStatus = "READY"; // 입금 확인 시 다운로드/발송 준비
-    } else if (newStatus === "MAKING") {
-      itemStatus = "PROCESSING"; // 제작 중
-    } else if (newStatus === "SHIPPING") {
-      itemStatus = "SHIPPED"; // 발송됨
-    } else if (newStatus === "DONE") {
-      itemStatus = "COMPLETED"; // 완료
-    }
+      // 디지털 상품은 즉시 완료, 실물 상품은 준비 상태로
+      const digitalItems = orderData.items.filter(
+        (item) => item.product?.type === "VOICE_PACK"
+      );
+      const physicalItems = orderData.items.filter(
+        (item) =>
+          item.product?.type === "PHYSICAL_GOODS" ||
+          item.product?.type === "BUNDLE"
+      );
 
-    await this.updateAllItemsStatus(orderId, itemStatus);
+      if (digitalItems.length > 0) {
+        await this.updateItemsStatus(
+          orderId,
+          digitalItems.map((item) => item.id),
+          "COMPLETED"
+        );
+      }
+      if (physicalItems.length > 0) {
+        await this.updateItemsStatus(
+          orderId,
+          physicalItems.map((item) => item.id),
+          "READY"
+        );
+      }
+    } else {
+      // 다른 상태는 기존 로직 유지 (모든 아이템 동일하게 변경)
+      let itemStatus: OrderItemStatus = "PENDING";
+      if (newStatus === "MAKING") {
+        itemStatus = "PROCESSING"; // 제작 중
+      } else if (newStatus === "SHIPPING") {
+        itemStatus = "SHIPPED"; // 발송됨
+      } else if (newStatus === "DONE") {
+        itemStatus = "COMPLETED"; // 완료
+      }
+
+      await this.updateAllItemsStatus(orderId, itemStatus);
+    }
 
     // ✅ 로그 기록
     await LogService.logOrderStatusChanged(
@@ -752,6 +779,7 @@ export class OrderService {
         `
         id,
         order_number,
+        buyer_name,
         shipping_name,
         total_price,
         status,
@@ -913,6 +941,31 @@ export class OrderService {
     if (error) {
       throw new ApiError(
         "주문 상품 상태 일괄 변경 실패",
+        500,
+        "ITEMS_STATUS_UPDATE_FAILED"
+      );
+    }
+  }
+
+  /**
+   * 특정 주문 아이템들의 상태 업데이트 (선택적)
+   */
+  static async updateItemsStatus(
+    orderId: string,
+    itemIds: string[],
+    newStatus: OrderItemStatus
+  ): Promise<void> {
+    const supabase = await createServerClient();
+
+    const { error } = await supabase
+      .from("order_items")
+      .update({ item_status: newStatus })
+      .eq("order_id", orderId)
+      .in("id", itemIds);
+
+    if (error) {
+      throw new ApiError(
+        "주문 상품 상태 변경 실패",
         500,
         "ITEMS_STATUS_UPDATE_FAILED"
       );

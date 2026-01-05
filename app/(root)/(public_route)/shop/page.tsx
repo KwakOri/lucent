@@ -4,14 +4,18 @@ import { VoicePackCover } from "@/components/order/VoicePackCover";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Loading } from "@/components/ui/loading";
-import { useProducts } from "@/hooks";
+import { useProducts, useAddToCart, useSession } from "@/lib/client/hooks";
 import { Package, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function ShopPage() {
   const router = useRouter();
+  const { user } = useSession();
   const { data: productsData, isLoading, error } = useProducts();
+  const addToCart = useAddToCart();
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   const products = productsData?.data || [];
   const voicePacks = products.filter((p) => p.type === "VOICE_PACK");
@@ -19,6 +23,25 @@ export default function ShopPage() {
 
   const handleProductClick = (productId: string) => {
     router.push(`/shop/${productId}`);
+  };
+
+  const handleAddToCart = async (
+    e: React.MouseEvent,
+    productId: string
+  ) => {
+    e.stopPropagation();
+
+    setAddingToCart(productId);
+    try {
+      await addToCart.mutateAsync({ product_id: productId, quantity: 1 });
+      alert("장바구니에 추가되었습니다!");
+    } catch (error) {
+      alert(
+        error instanceof Error ? error.message : "장바구니 추가에 실패했습니다"
+      );
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   if (isLoading) {
@@ -109,11 +132,28 @@ export default function ShopPage() {
                       {pack.price.toLocaleString()}원
                     </p>
 
-                    {/* View Details Button */}
-                    <Button intent="primary" size="md" fullWidth>
-                      <ShoppingCart className="w-4 h-4" />
-                      자세히 보기
-                    </Button>
+                    {/* Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        intent="secondary"
+                        size="md"
+                        fullWidth
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProductClick(pack.id);
+                        }}
+                      >
+                        자세히 보기
+                      </Button>
+                      <Button
+                        intent="primary"
+                        size="md"
+                        onClick={(e) => handleAddToCart(e, pack.id)}
+                        disabled={addingToCart === pack.id}
+                      >
+                        <ShoppingCart className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -182,18 +222,34 @@ export default function ShopPage() {
                       <p className="text-sm text-red-600 mb-2">품절</p>
                     )}
 
-                    {/* View Details Button */}
-                    <Button
-                      intent="primary"
-                      size="md"
-                      fullWidth
-                      disabled={goods.stock !== null && goods.stock <= 0}
-                    >
-                      <ShoppingCart className="w-4 h-4" />
-                      {goods.stock !== null && goods.stock <= 0
-                        ? "품절"
-                        : "자세히 보기"}
-                    </Button>
+                    {/* Buttons */}
+                    {goods.stock !== null && goods.stock <= 0 ? (
+                      <Button intent="primary" size="md" fullWidth disabled>
+                        품절
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          intent="secondary"
+                          size="md"
+                          fullWidth
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleProductClick(goods.id);
+                          }}
+                        >
+                          자세히 보기
+                        </Button>
+                        <Button
+                          intent="primary"
+                          size="md"
+                          onClick={(e) => handleAddToCart(e, goods.id)}
+                          disabled={addingToCart === goods.id}
+                        >
+                          <ShoppingCart className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

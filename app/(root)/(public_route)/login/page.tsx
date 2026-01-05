@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { FormField } from '@/components/ui/form-field';
 import { EmailInput } from '@/components/form';
 import { GoogleLoginButton } from '@/components/auth/GoogleLoginButton';
-import { useLogin } from '@/hooks';
+import { useLogin } from '@/lib/client/hooks';
 
 function LoginForm() {
   const searchParams = useSearchParams();

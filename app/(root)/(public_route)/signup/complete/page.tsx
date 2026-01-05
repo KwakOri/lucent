@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loading } from '@/components/ui/loading';
-import { useSignupWithToken } from '@/hooks';
+import { useSignupWithToken } from '@/lib/client/hooks';
 
 function SignupCompleteContent() {
   const router = useRouter();

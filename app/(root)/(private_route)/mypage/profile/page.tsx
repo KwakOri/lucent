@@ -16,14 +16,14 @@ import { FormField } from '@/components/ui/form-field';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { NameInput, PhoneInput, AddressInput } from '@/components/form';
-import { useMyProfile, useUpdateProfile } from '@/hooks';
+import { useProfile, useUpdateProfile } from '@/lib/client/hooks';
 import { useToast } from '@/src/components/toast';
 
 export default function ProfileEditPage() {
   const router = useRouter();
   const { showToast } = useToast();
 
-  const { data: profile, isLoading, error } = useMyProfile();
+  const { data: profile, isLoading, error } = useProfile();
   const { mutate: updateProfile, isPending: isSaving } = useUpdateProfile();
 
   const [formData, setFormData] = useState({
