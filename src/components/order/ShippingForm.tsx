@@ -7,10 +7,9 @@
 "use client";
 
 import { AddressInput, NameInput, PhoneInput } from "@/components/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface ShippingInfo {
   name: string;
@@ -34,16 +33,25 @@ export function ShippingForm({
   customerInfo,
   onChange,
 }: ShippingFormProps) {
+  // 초기값: initialValues가 있으면 사용, 없으면 customerInfo를 기본값으로 사용
   const [values, setValues] = useState<ShippingInfo>({
-    name: initialValues?.name || "",
-    phone: initialValues?.phone || "",
+    name: initialValues?.name || customerInfo?.name || "",
+    phone: initialValues?.phone || customerInfo?.phone || "",
     mainAddress: initialValues?.mainAddress || "",
     detailAddress: initialValues?.detailAddress || "",
     memo: initialValues?.memo || "",
   });
 
-  // "주문자 정보와 동일" 체크 상태
-  const [sameAsCustomer, setSameAsCustomer] = useState(false);
+  // initialValues나 customerInfo가 변경되면 state 업데이트
+  useEffect(() => {
+    setValues({
+      name: initialValues?.name || customerInfo?.name || "",
+      phone: initialValues?.phone || customerInfo?.phone || "",
+      mainAddress: initialValues?.mainAddress || "",
+      detailAddress: initialValues?.detailAddress || "",
+      memo: initialValues?.memo || "",
+    });
+  }, [initialValues, customerInfo]);
 
   const handleChange = (field: keyof ShippingInfo, value: string) => {
     const newValues = { ...values, [field]: value };
@@ -51,32 +59,9 @@ export function ShippingForm({
     onChange(newValues);
   };
 
-  const handleCopyFromCustomer = (checked: boolean) => {
-    setSameAsCustomer(checked);
-
-    if (checked && customerInfo) {
-      // 주문자 정보를 배송 정보로 복사
-      const newValues = {
-        ...values,
-        name: customerInfo.name || "",
-        phone: customerInfo.phone || "",
-      };
-      setValues(newValues);
-      onChange(newValues);
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">배송 정보</h2>
-        {customerInfo && (
-          <Checkbox
-            label="주문자 정보와 동일"
-            onChange={(e) => handleCopyFromCustomer(e.target.checked)}
-          />
-        )}
-      </div>
+      <h2 className="text-lg font-semibold text-gray-900 mb-4">배송 정보</h2>
 
       <NameInput
         id="shippingName"
@@ -86,7 +71,6 @@ export function ShippingForm({
         onChange={(newValue) => handleChange("name", newValue)}
         placeholder="받으실 분의 이름을 입력하세요"
         required
-        disabled={sameAsCustomer}
       />
 
       <PhoneInput
@@ -96,7 +80,6 @@ export function ShippingForm({
         value={values.phone}
         onChange={(newValue) => handleChange("phone", newValue)}
         required
-        disabled={sameAsCustomer}
       />
 
       <AddressInput
@@ -114,7 +97,6 @@ export function ShippingForm({
           handleChange("detailAddress", newValue)
         }
         required
-        disabled={sameAsCustomer}
       />
 
       <FormField label="배송 메모" htmlFor="shippingMemo">

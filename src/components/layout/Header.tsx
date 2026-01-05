@@ -1,7 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useLogout, useSession } from "@/hooks";
+import { useLogout, useSession, useCartCount } from "@/lib/client/hooks";
+import { ShoppingCart } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import { useEffect, useState } from "react";
 export function Header() {
   const { user, isLoading } = useSession();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
+  const { data: cartCount } = useCartCount();
 
   const handleLogout = () => {
     logout();
@@ -122,6 +124,20 @@ export function Header() {
                   size="sm"
                 >
                   굿즈샵
+                </Button>
+              </Link>
+              <Link href="/cart">
+                <Button
+                  intent={scrolled ? "headerScrolled" : "header"}
+                  size="sm"
+                  className="relative"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  {cartCount && cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {cartCount > 99 ? '99+' : cartCount}
+                    </span>
+                  )}
                 </Button>
               </Link>
               {isLoading || isLoggingOut ? (

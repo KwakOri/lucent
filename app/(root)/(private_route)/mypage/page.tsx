@@ -8,25 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package, Settings, X } from 'lucide-react';
-import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/hooks';
+import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/lib/client';
 import { useToast } from '@/src/components/toast';
+import { ORDER_STATUS_CONFIG, ITEM_STATUS_CONFIG } from '@/src/constants';
 import type { Enums } from '@/types';
 
 // Order status types
 type OrderStatus = Enums<'order_status'>;
-type ProductType = Enums<'product_type'>;
-
-// Order status config
-const ORDER_STATUS_CONFIG: Record<
-  OrderStatus,
-  { label: string; intent: 'default' | 'success' | 'warning' | 'error' }
-> = {
-  PENDING: { label: '입금대기', intent: 'warning' },
-  PAID: { label: '입금확인', intent: 'default' },
-  MAKING: { label: '제작중', intent: 'warning' },
-  SHIPPING: { label: '발송중', intent: 'success' },
-  DONE: { label: '배송완료', intent: 'default' },
-};
+type OrderItemStatus = Enums<'order_item_status'>;
 
 export default function MyPage() {
   const router = useRouter();
@@ -195,14 +184,21 @@ export default function MyPage() {
                           <p className="text-base font-medium text-text-primary">
                             {item.product_name}
                           </p>
-                          <p className="text-sm text-text-secondary">
-                            {item.quantity}개 × {item.price_snapshot.toLocaleString()}원
-                          </p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="text-sm text-text-secondary">
+                              {item.quantity}개 × {item.price_snapshot.toLocaleString()}원
+                            </p>
+                            {item.item_status && (
+                              <Badge intent={ITEM_STATUS_CONFIG[item.item_status as OrderItemStatus]?.intent || 'default'} size="sm">
+                                {ITEM_STATUS_CONFIG[item.item_status as OrderItemStatus]?.label || item.item_status}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
 
                         {/* Download Button for Digital Products */}
                         {item.product_type === 'VOICE_PACK' &&
-                          order.status !== 'PENDING' && (
+                          item.item_status === 'COMPLETED' && (
                             <Button
                               intent="primary"
                               size="sm"
@@ -262,10 +258,9 @@ export default function MyPage() {
             <div className="bg-white rounded-xl border border-neutral-200 p-6">
               <div className="space-y-4">
                 {orders
-                  .filter((order) => order.status !== 'PENDING')
                   .flatMap((order) =>
                     order.items
-                      ?.filter((item) => item.product_type === 'VOICE_PACK')
+                      ?.filter((item) => item.product_type === 'VOICE_PACK' && item.item_status === 'COMPLETED')
                       .map((item) => (
                         <div
                           key={`${order.id}-${item.id}`}

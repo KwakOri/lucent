@@ -14,7 +14,10 @@ import { queryKeys } from './query-keys';
 export function useArtists() {
   return useQuery({
     queryKey: queryKeys.artists.lists(),
-    queryFn: () => ArtistsAPI.getArtists(),
+    queryFn: async () => {
+      const response = await ArtistsAPI.getArtists();
+      return response.data;
+    },
     staleTime: 1000 * 60 * 10, // 10분 (아티스트 정보는 자주 변경되지 않음)
   });
 }
@@ -25,7 +28,10 @@ export function useArtists() {
 export function useArtist(slug: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.artists.detail(slug || ''),
-    queryFn: () => ArtistsAPI.getArtist(slug!),
+    queryFn: async () => {
+      const response = await ArtistsAPI.getArtist(slug!);
+      return response.data;
+    },
     enabled: !!slug,
     staleTime: 1000 * 60 * 10, // 10분
   });
