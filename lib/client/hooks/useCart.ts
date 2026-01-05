@@ -187,7 +187,9 @@ export function useCart() {
   return useQuery({
     queryKey: ['cart'],
     queryFn: getCartWithProducts,
-    staleTime: 1000 * 60 * 5, // 5분
+    staleTime: 0, // localStorage 기반이므로 항상 최신 데이터 가져오기
+    refetchOnMount: true, // 페이지 마운트 시 항상 refetch
+    refetchOnWindowFocus: true, // 윈도우 포커스 시 refetch
   });
 }
 
