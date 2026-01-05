@@ -4,7 +4,7 @@ import { VoicePackCover } from "@/components/order/VoicePackCover";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Loading } from "@/components/ui/loading";
-import { useProducts, useAddToCart, useSession } from "@/hooks";
+import { useProducts, useAddToCart, useSession } from "@/lib/client/hooks";
 import { Package, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

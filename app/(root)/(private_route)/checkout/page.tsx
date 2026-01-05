@@ -17,11 +17,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { CartOrderSummary } from '@/components/order/CartOrderSummary';
 import { OrderSummary } from '@/components/order';
 import { ShippingForm, BuyerInfoForm, type ShippingInfo, type BuyerInfo } from '@/components/order';
-import { useCart, useClearCart } from '@/hooks/useCart';
-import { useCreateOrder } from '@/hooks/useOrders';
-import { useSession } from '@/hooks/useAuth';
-import { useMyProfile } from '@/hooks';
-import { useProduct } from '@/hooks/useProducts';
+import { useCart, useClearCart } from '@/lib/client/hooks/useCart';
+import { useCreateOrder } from '@/lib/client/hooks/useOrders';
+import { useSession } from '@/lib/client/hooks/useAuth';
+import { useMyProfile } from '@/lib/client/hooks';
+import { useProduct } from '@/lib/client/hooks/useProducts';
 import { SHIPPING_FEE } from '@/constants';
 
 export default function CheckoutPage() {

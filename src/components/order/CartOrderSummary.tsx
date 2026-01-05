@@ -6,7 +6,7 @@
 
 'use client';
 
-import type { CartItemWithProduct } from '@/hooks/useCart';
+import type { CartItemWithProduct } from '@/lib/client/hooks/useCart';
 
 interface CartOrderSummaryProps {
   items: CartItemWithProduct[];

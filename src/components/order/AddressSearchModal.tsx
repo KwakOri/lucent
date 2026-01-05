@@ -12,7 +12,7 @@ import { Footer, Header, ModalContainer, Overlay } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loading } from "@/components/ui/loading";
-import { useAddressSearch } from "@/hooks/useAddressSearch";
+import { useAddressSearch } from "@/lib/client/hooks/useAddressSearch";
 import type { AddressSearchResult } from "@/types/address";
 import { Search } from "lucide-react";
 import { useState } from "react";

@@ -9,7 +9,7 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useSession } from '@/hooks/useAuth';
+import { useSession } from '@/lib/client/hooks/useAuth';
 import { Loading } from '@/components/ui/loading';
 
 export default function PrivateRouteLayout({

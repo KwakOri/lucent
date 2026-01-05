@@ -8,7 +8,7 @@ import {
   useUpdateCartItem,
   useRemoveCartItem,
   useClearCart,
-} from "@/hooks";
+} from "@/lib/client/hooks";
 import { ShoppingBag, Trash2, Minus, Plus, ShoppingCart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

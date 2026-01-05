@@ -17,7 +17,7 @@ export default function ProjectsPage() {
 // import Link from 'next/link';
 // import { Loading } from '@/components/ui/loading';
 // import { EmptyState } from '@/components/ui/empty-state';
-// import { useProjects } from '@/hooks';
+// import { useProjects } from '@/lib/client/hooks';
 //
 // // Project display config (for UI enhancement)
 // const PROJECT_DISPLAY_CONFIG: Record<string, {

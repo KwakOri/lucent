@@ -16,7 +16,7 @@ import { FormField } from '@/components/ui/form-field';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { NameInput, PhoneInput, AddressInput } from '@/components/form';
-import { useMyProfile, useUpdateProfile } from '@/hooks';
+import { useMyProfile, useUpdateProfile } from '@/lib/client/hooks';
 import { useToast } from '@/src/components/toast';
 
 export default function ProfileEditPage() {

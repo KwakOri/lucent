@@ -8,7 +8,7 @@ import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { /* Play, Pause, */ ShoppingCart, ArrowLeft, Package /* , Volume2, VolumeX */ } from 'lucide-react';
-import { useProduct } from '@/hooks';
+import { useProduct } from '@/lib/client/hooks';
 
 export default function ProductDetailPage() {
   const router = useRouter();

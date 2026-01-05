@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { useLogout, useSession, useCartCount } from "@/hooks";
+import { useLogout, useSession, useCartCount } from "@/lib/client/hooks";
 import { ShoppingCart } from "lucide-react";
 
 import Link from "next/link";
