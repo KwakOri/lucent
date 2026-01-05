@@ -37,14 +37,13 @@ export {
   useMyOrders,
   useMyVoicePacks,
   useCancelOrder,
-  type OrderWithItems,
 } from './useOrders';
 
 // Project Hooks
 export { useProjects, useProject, useProjectBySlug } from './useProjects';
 
 // Profile Hooks
-export { useMyProfile, useUpdateProfile } from './useProfiles';
+export { useProfile, useUpdateProfile } from './useProfile';
 
 // Cart Hooks
 export {

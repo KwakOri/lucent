@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package, Settings, X } from 'lucide-react';
-import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/lib/client/hooks';
+import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/lib/client';
 import { useToast } from '@/src/components/toast';
 import { ORDER_STATUS_CONFIG, ITEM_STATUS_CONFIG } from '@/src/constants';
 import type { Enums } from '@/types';

@@ -20,7 +20,7 @@ import { ShippingForm, BuyerInfoForm, type ShippingInfo, type BuyerInfo } from '
 import { useCart, useClearCart } from '@/lib/client/hooks/useCart';
 import { useCreateOrder } from '@/lib/client/hooks/useOrders';
 import { useSession } from '@/lib/client/hooks/useAuth';
-import { useMyProfile } from '@/lib/client/hooks';
+import { useProfile } from '@/lib/client/hooks';
 import { useProduct } from '@/lib/client/hooks/useProducts';
 import { SHIPPING_FEE } from '@/constants';
 
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
   const { mutate: createOrder, isPending: isCreatingOrder } = useCreateOrder();
   const { mutate: clearCart } = useClearCart();
   const { user, isLoading: isLoadingUser } = useSession();
-  const { data: profile, isLoading: isLoadingProfile } = useMyProfile();
+  const { data: profile, isLoading: isLoadingProfile } = useProfile();
 
   // 주문 모드 결정
   const isSingleProductMode = !!productId;
