@@ -422,8 +422,8 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                           {order.total_price.toLocaleString()}원
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm">
-                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${ORDER_STATUS_COLORS[order.status] || 'bg-gray-100 text-gray-800'}`}>
-                            {ORDER_STATUS_LABELS[order.status] || order.status}
+                          <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${ORDER_STATUS_COLORS[order.status as keyof typeof ORDER_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                            {ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] || order.status}
                           </span>
                         </td>
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

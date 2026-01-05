@@ -59,7 +59,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
       return;
     }
 
-    if (!confirm(`주문 상태를 "${ORDER_STATUS_LABELS[selectedStatus]}"(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`주문 상태를 "${ORDER_STATUS_LABELS[selectedStatus as keyof typeof ORDER_STATUS_LABELS]}"(으)로 변경하시겠습니까?`)) {
       return;
     }
 
@@ -123,7 +123,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
       return;
     }
 
-    if (!confirm(`선택한 ${selectedItems.size}개 아이템의 상태를 "${ITEM_STATUS_LABELS[selectedItemStatus]}"(으)로 변경하시겠습니까?`)) {
+    if (!confirm(`선택한 ${selectedItems.size}개 아이템의 상태를 "${ITEM_STATUS_LABELS[selectedItemStatus as keyof typeof ITEM_STATUS_LABELS]}"(으)로 변경하시겠습니까?`)) {
       return;
     }
 
@@ -333,7 +333,7 @@ export function OrderDetail({ order: initialOrder }: OrderDetailProps) {
                                       : 'bg-blue-100 text-blue-800'
                                   }`}
                                 >
-                                  {ITEM_STATUS_LABELS[item.item_status] || item.item_status}
+                                  {item.item_status ? ITEM_STATUS_LABELS[item.item_status as keyof typeof ITEM_STATUS_LABELS] || item.item_status : ''}
                                 </span>
                                 {isDisabled && (
                                   <span className="ml-2 text-xs text-gray-500">(다운로드 가능)</span>

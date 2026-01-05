@@ -14,7 +14,10 @@ import { queryKeys } from './query-keys';
 export function useProfile() {
   return useQuery({
     queryKey: queryKeys.profile.my(),
-    queryFn: () => ProfilesAPI.getMyProfile(),
+    queryFn: async () => {
+      const response = await ProfilesAPI.getMyProfile();
+      return response.data;
+    },
     staleTime: 1000 * 60 * 5, // 5분
   });
 }
@@ -26,7 +29,10 @@ export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateProfileData) => ProfilesAPI.updateProfile(data),
+    mutationFn: async (data: UpdateProfileData) => {
+      const response = await ProfilesAPI.updateProfile(data);
+      return response.data;
+    },
     onSuccess: () => {
       // 프로필 캐시 무효화
       queryClient.invalidateQueries({
