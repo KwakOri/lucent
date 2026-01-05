@@ -57,7 +57,6 @@ export const ITEM_STATUS_CONFIG: Record<
   SHIPPED: { label: '배송중', intent: 'warning' },
   DELIVERED: { label: '배송완료', intent: 'success' },
   COMPLETED: { label: '완료', intent: 'success' },
-  CANCELLED: { label: '취소', intent: 'error' },
 };
 
 /**
@@ -70,7 +69,6 @@ export const ITEM_STATUS_LABELS: Record<OrderItemStatus, string> = {
   SHIPPED: '배송중',
   DELIVERED: '배송완료',
   COMPLETED: '완료',
-  CANCELLED: '취소',
 };
 
 /**

@@ -31,7 +31,7 @@ interface OrdersTableProps {
   orders: Order[];
 }
 
-type Tab = 'pending' | 'ready' | 'shipping' | 'completed';
+type Tab = 'pending' | 'ready' | 'processing' | 'shipping' | 'completed';
 
 export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   const [orders, setOrders] = useState(initialOrders);
@@ -59,8 +59,8 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
             item.product_type === 'BUNDLE')
       );
       return physicalItems.length > 0 && physicalItems.some((item) => item.item_status === 'READY');
-    } else if (activeTab === 'shipping') {
-      // 배송 중: 실물 상품이 있고, 실물 상품이 PROCESSING 또는 SHIPPED 상태
+    } else if (activeTab === 'processing') {
+      // 처리중: 실물 상품이 있고, 실물 상품이 PROCESSING 상태
       const physicalItems = order.items.filter(
         (item) =>
           (item.product?.type === 'PHYSICAL_GOODS' ||
@@ -68,12 +68,17 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
           (item.product_type === 'PHYSICAL_GOODS' ||
             item.product_type === 'BUNDLE')
       );
-      return (
-        physicalItems.length > 0 &&
-        physicalItems.some(
-          (item) => item.item_status === 'PROCESSING' || item.item_status === 'SHIPPED'
-        )
+      return physicalItems.length > 0 && physicalItems.some((item) => item.item_status === 'PROCESSING');
+    } else if (activeTab === 'shipping') {
+      // 배송 중: 실물 상품이 있고, 실물 상품이 SHIPPED 상태
+      const physicalItems = order.items.filter(
+        (item) =>
+          (item.product?.type === 'PHYSICAL_GOODS' ||
+            item.product?.type === 'BUNDLE') ||
+          (item.product_type === 'PHYSICAL_GOODS' ||
+            item.product_type === 'BUNDLE')
       );
+      return physicalItems.length > 0 && physicalItems.some((item) => item.item_status === 'SHIPPED');
     } else if (activeTab === 'completed') {
       // 완료: 모든 아이템이 COMPLETED 상태
       return order.items.every((item) => item.item_status === 'COMPLETED');
@@ -228,6 +233,19 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
               배송 대기
             </button>
             <button
+              onClick={() => setActiveTab('processing')}
+              className={`
+                whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium
+                ${
+                  activeTab === 'processing'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                }
+              `}
+            >
+              처리중
+            </button>
+            <button
               onClick={() => setActiveTab('shipping')}
               className={`
                 whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium
@@ -296,6 +314,23 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                 </select>
               )}
 
+              {/* 처리중 탭: 발송 상태 변경 */}
+              {activeTab === 'processing' && (
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleBulkItemStatusChange(e.target.value);
+                      e.target.value = '';
+                    }
+                  }}
+                  disabled={isBulkUpdating}
+                  className="rounded-md bg-white border-2 border-blue-400 text-gray-900 font-medium py-2 pl-3 pr-10 text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">상태 변경</option>
+                  <option value="SHIPPED">발송완료</option>
+                </select>
+              )}
+
               {/* 배송 중 탭: 배송 상태 변경 */}
               {activeTab === 'shipping' && (
                 <select
@@ -309,8 +344,7 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                   className="rounded-md bg-white border-2 border-blue-400 text-gray-900 font-medium py-2 pl-3 pr-10 text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">상태 변경</option>
-                  <option value="DELIVERED">배송완료</option>
-                  <option value="COMPLETED">수령확인</option>
+                  <option value="COMPLETED">완료</option>
                 </select>
               )}
             </div>
