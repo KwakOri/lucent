@@ -7,15 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
-import { /* Play, Pause, */ ShoppingCart, ArrowLeft, Package /* , Volume2, VolumeX */ } from 'lucide-react';
-import { useProduct } from '@/lib/client/hooks';
+import { /* Play, Pause, */ ShoppingCart, ArrowLeft, Package, Plus /* , Volume2, VolumeX */ } from 'lucide-react';
+import { useProduct, useAddToCart } from '@/lib/client/hooks';
+import { useToast } from '@/src/components/toast';
 
 export default function ProductDetailPage() {
   const router = useRouter();
   const params = useParams();
   const productId = params.product_id as string;
+  const { showToast } = useToast();
 
   const { data: product, isLoading, error } = useProduct(productId);
+  const { mutate: addToCart, isPending: isAddingToCart } = useAddToCart();
 
   // ===== 샘플 오디오 기능 주석 처리 (Google Drive 링크 방식으로 전환) =====
   // const [isPlayingSample, setIsPlayingSample] = useState(false);
@@ -145,6 +148,23 @@ export default function ProductDetailPage() {
 
   const handlePurchase = () => {
     router.push(`/checkout?product_id=${productId}`);
+  };
+
+  const handleAddToCart = () => {
+    addToCart(
+      { product_id: productId, quantity: 1 },
+      {
+        onSuccess: () => {
+          showToast('장바구니에 추가되었습니다', { type: 'success' });
+        },
+        onError: (error) => {
+          showToast(
+            error instanceof Error ? error.message : '장바구니 추가에 실패했습니다',
+            { type: 'error' }
+          );
+        },
+      }
+    );
   };
 
   if (isLoading) {
@@ -330,17 +350,32 @@ export default function ProductDetailPage() {
             )} */}
             {/* ===== 샘플 오디오 플레이어 UI 주석 처리 끝 ===== */}
 
-            {/* Purchase Button */}
-            <Button
-              intent="primary"
-              size="lg"
-              fullWidth
-              onClick={handlePurchase}
-              disabled={isOutOfStock}
-            >
-              <ShoppingCart className="w-5 h-5" />
-              {isOutOfStock ? '품절' : '구매하기'}
-            </Button>
+            {/* Action Buttons */}
+            <div className="space-y-3">
+              {/* Add to Cart Button */}
+              <Button
+                intent="secondary"
+                size="lg"
+                fullWidth
+                onClick={handleAddToCart}
+                disabled={isOutOfStock || isAddingToCart}
+              >
+                <Plus className="w-5 h-5" />
+                {isAddingToCart ? '추가 중...' : '장바구니에 담기'}
+              </Button>
+
+              {/* Purchase Button */}
+              <Button
+                intent="primary"
+                size="lg"
+                fullWidth
+                onClick={handlePurchase}
+                disabled={isOutOfStock}
+              >
+                <ShoppingCart className="w-5 h-5" />
+                {isOutOfStock ? '품절' : '바로 구매하기'}
+              </Button>
+            </div>
 
           </div>
         </div>
