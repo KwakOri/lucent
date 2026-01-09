@@ -10,7 +10,6 @@ import { Select } from '@/components/ui/select';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/src/constants';
 import {
   BulkUpdateConfirmModal,
-  BulkUpdateLoadingModal,
   BulkUpdateSuccessModal,
 } from './BulkUpdateModal';
 
@@ -118,17 +117,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
     setIsBulkUpdating(true);
 
-    const loadingModalId = crypto.randomUUID();
-
-    // 2. 로딩 모달 열기 (Promise 저장)
-    const loadingModalPromise = openModal(BulkUpdateLoadingModal, {
-      id: loadingModalId,
-      count,
-      disableBackdropClick: true,
-      disableEscapeKey: true,
-    });
-
     try {
+      // 2. API 호출
       const response = await fetch('/api/admin/orders/bulk-update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -150,20 +140,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       // React Query 캐시 무효화 (주문 목록 자동 재조회)
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-      // 3. 로딩 모달 닫기 (reject 처리)
-      closeModal(loadingModalId);
-
-      // Promise rejection 처리
-      try {
-        await loadingModalPromise;
-      } catch {
-        // "closed" rejection은 정상 동작이므로 무시
-      }
-
-      // 모달 DOM이 완전히 제거될 때까지 대기
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // 4. 완료 모달 열기
+      // 3. 완료 모달 열기
       await openModal(BulkUpdateSuccessModal, {
         count,
         statusLabel,
@@ -172,18 +149,6 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       });
     } catch (error) {
       console.error('Bulk status change error:', error);
-
-      // 로딩 모달 닫기
-      closeModal(loadingModalId);
-
-      // Promise rejection 처리
-      try {
-        await loadingModalPromise;
-      } catch {
-        // "closed" rejection은 정상 동작이므로 무시
-      }
-
-      // 에러 모달 대신 alert 사용 (간단하게)
       alert(error instanceof Error ? error.message : '상태 변경 중 오류가 발생했습니다');
     } finally {
       setIsBulkUpdating(false);
