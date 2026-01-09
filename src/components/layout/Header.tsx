@@ -8,39 +8,48 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+// Navigation items
+const NAV_ITEMS = [
+  { label: "홈", action: "scrollToTop" as const },
+  { label: "뉴스", action: "news" as const },
+  { label: "소개", action: "about" as const },
+] as const;
+
+// Cart Badge Component
+function CartBadge({ count }: { count?: number }) {
+  if (!count || count <= 0) return null;
+
+  return (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+      {count > 99 ? "99+" : count}
+    </span>
+  );
+}
+
 export function Header() {
   const { user, isLoading } = useSession();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
   const { data: cartCount } = useCartCount();
-
-  const handleLogout = () => {
-    logout();
-  };
 
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition =
-        window.scrollY || document.documentElement.scrollTop;
-      console.log("scrollPosition => ", scrollPosition);
-      setScrolled(scrollPosition > 50);
+      setScrolled(window.scrollY > 50);
     };
 
-    // 초기 스크롤 위치 확인
     handleScroll();
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 스크롤 이동 함수
+  // Navigation handlers
   const scrollToSection = (sectionId: string) => {
     setMobileMenuOpen(false);
-    // 홈페이지가 아닌 경우 홈으로 이동 후 스크롤
     if (pathname !== "/") {
       router.push(`/#${sectionId}`);
       return;
@@ -52,7 +61,6 @@ export function Header() {
     }
   };
 
-  // 최상단으로 이동
   const scrollToTop = () => {
     setMobileMenuOpen(false);
     if (pathname !== "/") {
@@ -61,6 +69,17 @@ export function Header() {
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  const handleNavClick = (action: (typeof NAV_ITEMS)[number]["action"]) => {
+    if (action === "scrollToTop") {
+      scrollToTop();
+    } else {
+      scrollToSection(action);
+    }
+  };
+
+  // Dynamic button intent
+  const buttonIntent = scrolled ? "headerScrolled" : "header";
 
   return (
     <>
@@ -92,27 +111,16 @@ export function Header() {
 
                 {/* Left Navigation */}
                 <div className="hidden md:flex items-center gap-2">
-                  <Button
-                    intent={scrolled ? "headerScrolled" : "header"}
-                    size="sm"
-                    onClick={scrollToTop}
-                  >
-                    홈
-                  </Button>
-                  <Button
-                    intent={scrolled ? "headerScrolled" : "header"}
-                    size="sm"
-                    onClick={() => scrollToSection("news")}
-                  >
-                    뉴스
-                  </Button>
-                  <Button
-                    intent={scrolled ? "headerScrolled" : "header"}
-                    size="sm"
-                    onClick={() => scrollToSection("about")}
-                  >
-                    소개
-                  </Button>
+                  {NAV_ITEMS.map((item) => (
+                    <Button
+                      key={item.label}
+                      intent={buttonIntent}
+                      size="sm"
+                      onClick={() => handleNavClick(item.action)}
+                    >
+                      {item.label}
+                    </Button>
+                  ))}
                 </div>
 
                 {/* Center Logo */}
@@ -133,35 +141,15 @@ export function Header() {
 
                 {/* Right Navigation */}
                 <div className="hidden md:flex items-center gap-2">
-                  {/* 프로젝트 페이지 개발 중 - 임시 비활성화 */}
-                  {/* <Link href="/projects">
-                <Button
-                  intent={scrolled ? "headerScrolled" : "header"}
-                  size="sm"
-                >
-                  프로젝트
-                </Button>
-              </Link> */}
                   <Link href="/shop">
-                    <Button
-                      intent={scrolled ? "headerScrolled" : "header"}
-                      size="sm"
-                    >
+                    <Button intent={buttonIntent} size="sm">
                       굿즈샵
                     </Button>
                   </Link>
                   <Link href="/cart">
-                    <Button
-                      intent={scrolled ? "headerScrolled" : "header"}
-                      size="sm"
-                      className="relative"
-                    >
+                    <Button intent={buttonIntent} size="sm" className="relative">
                       <ShoppingCart className="w-4 h-4" />
-                      {cartCount && cartCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                          {cartCount > 99 ? "99+" : cartCount}
-                        </span>
-                      )}
+                      <CartBadge count={cartCount} />
                     </Button>
                   </Link>
                   {isLoading || isLoggingOut ? (
@@ -169,27 +157,17 @@ export function Header() {
                   ) : user ? (
                     <>
                       <Link href="/mypage">
-                        <Button
-                          intent={scrolled ? "headerScrolled" : "header"}
-                          size="sm"
-                        >
+                        <Button intent={buttonIntent} size="sm">
                           마이페이지
                         </Button>
                       </Link>
-                      <Button
-                        intent={scrolled ? "headerScrolled" : "header"}
-                        size="sm"
-                        onClick={handleLogout}
-                      >
+                      <Button intent={buttonIntent} size="sm" onClick={() => logout()}>
                         로그아웃
                       </Button>
                     </>
                   ) : (
                     <Link href="/login">
-                      <Button
-                        intent={scrolled ? "headerScrolled" : "header"}
-                        size="sm"
-                      >
+                      <Button intent={buttonIntent} size="sm">
                         로그인
                       </Button>
                     </Link>
@@ -198,17 +176,9 @@ export function Header() {
 
                 {/* Mobile Cart Button (Right) */}
                 <Link href="/cart" className="md:hidden relative">
-                  <Button
-                    intent={scrolled ? "headerScrolled" : "header"}
-                    size="sm"
-                    className="relative"
-                  >
+                  <Button intent={buttonIntent} size="sm" className="relative">
                     <ShoppingCart className="w-4 h-4" />
-                    {cartCount && cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {cartCount > 99 ? "99+" : cartCount}
-                      </span>
-                    )}
+                    <CartBadge count={cartCount} />
                   </Button>
                 </Link>
               </div>
@@ -255,30 +225,17 @@ export function Header() {
 
           {/* Menu Items */}
           <div className="flex flex-col p-4 space-y-2">
-            <Button
-              intent="headerScrolled"
-              size="sm"
-              onClick={scrollToTop}
-              className="w-full justify-start"
-            >
-              홈
-            </Button>
-            <Button
-              intent="headerScrolled"
-              size="sm"
-              onClick={() => scrollToSection("news")}
-              className="w-full justify-start"
-            >
-              뉴스
-            </Button>
-            <Button
-              intent="headerScrolled"
-              size="sm"
-              onClick={() => scrollToSection("about")}
-              className="w-full justify-start"
-            >
-              소개
-            </Button>
+            {NAV_ITEMS.map((item) => (
+              <Button
+                key={item.label}
+                intent="headerScrolled"
+                size="sm"
+                onClick={() => handleNavClick(item.action)}
+                className="w-full justify-start"
+              >
+                {item.label}
+              </Button>
+            ))}
             <div className="h-px bg-white/10 my-2" />
             <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>
               <Button
@@ -321,7 +278,7 @@ export function Header() {
                 <Button
                   intent="headerScrolled"
                   size="sm"
-                  onClick={handleLogout}
+                  onClick={() => logout()}
                   className="w-full justify-start"
                 >
                   로그아웃
