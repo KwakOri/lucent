@@ -43,6 +43,11 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
 
+  // props로 받은 orders가 변경되면 state 업데이트 (router.refresh() 후 반영)
+  useEffect(() => {
+    setOrders(initialOrders);
+  }, [initialOrders]);
+
   // 탭 변경 시 선택 목록 및 드롭다운 초기화
   useEffect(() => {
     setSelectedOrderIds([]);
