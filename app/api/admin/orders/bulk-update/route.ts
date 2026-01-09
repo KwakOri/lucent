@@ -41,7 +41,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: '상태값이 필요합니다' }, { status: 400 });
     }
 
-    const validStatuses = ['PENDING', 'PAID', 'MAKING', 'SHIPPING', 'DONE'];
+    const validStatuses = ['PENDING', 'PAID', 'MAKING', 'READY_TO_SHIP', 'SHIPPING', 'DONE'];
     if (!validStatuses.includes(status)) {
       return NextResponse.json({ error: '유효하지 않은 상태값입니다' }, { status: 400 });
     }
@@ -54,7 +54,7 @@ export async function PATCH(request: NextRequest) {
       try {
         const result = await OrderService.updateOrderStatus(
           orderId,
-          status as 'PENDING' | 'PAID' | 'MAKING' | 'SHIPPING' | 'DONE',
+          status as 'PENDING' | 'PAID' | 'MAKING' | 'READY_TO_SHIP' | 'SHIPPING' | 'DONE',
           user.id
         );
         results.push(result);
