@@ -49,6 +49,7 @@ export async function PATCH(
       'PENDING',
       'PAID',
       'MAKING',
+      'READY_TO_SHIP',
       'SHIPPING',
       'DONE',
     ];

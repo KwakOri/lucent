@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/src/constants';
 
 interface Order {
@@ -38,10 +39,12 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
 
-  // 탭 변경 시 선택 목록 초기화
+  // 탭 변경 시 선택 목록 및 드롭다운 초기화
   useEffect(() => {
     setSelectedOrderIds([]);
+    setSelectedStatus('');
   }, [activeTab]);
 
   // 탭별 필터링 로직 (orders.status 기반)
@@ -113,6 +116,24 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       setIsBulkUpdating(false);
     }
   };
+
+  // 드롭다운으로 상태 변경
+  const handleDropdownStatusChange = async () => {
+    if (!selectedStatus) return;
+
+    const statusLabel = ORDER_STATUS_LABELS[selectedStatus as keyof typeof ORDER_STATUS_LABELS];
+    await handleBulkStatusChange(
+      selectedStatus,
+      `선택한 ${selectedOrderIds.length}개 주문을 "${statusLabel}" 상태로 변경하시겠습니까?`
+    );
+    setSelectedStatus('');
+  };
+
+  // 드롭다운 옵션 생성 (모든 상태)
+  const statusOptions = Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({
+    value,
+    label,
+  }));
 
   return (
     <div>
@@ -285,6 +306,27 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                   {isBulkUpdating ? '처리 중...' : '완료 처리'}
                 </Button>
               )}
+
+              {/* 드롭다운으로 다른 상태로 변경 */}
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-blue-300">
+                <Select
+                  options={statusOptions}
+                  placeholder="다른 상태로 변경"
+                  size="sm"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  disabled={isBulkUpdating}
+                  className="w-48"
+                />
+                <Button
+                  intent="secondary"
+                  size="sm"
+                  onClick={handleDropdownStatusChange}
+                  disabled={isBulkUpdating || !selectedStatus}
+                >
+                  변경
+                </Button>
+              </div>
             </div>
             <Button
               intent="secondary"
