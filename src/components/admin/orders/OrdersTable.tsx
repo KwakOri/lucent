@@ -150,11 +150,11 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       // React Query 캐시 무효화 (주문 목록 자동 재조회)
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-      // 3. 로딩 모달 닫기
+      // 3. 로딩 모달 완전히 닫기
       closeModal(loadingModalId);
 
-      // DOM 업데이트를 위한 짧은 딜레이
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // 모달 DOM이 완전히 제거될 때까지 대기 (300ms)
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // 4. 완료 모달 열기
       await openModal(BulkUpdateSuccessModal, {
