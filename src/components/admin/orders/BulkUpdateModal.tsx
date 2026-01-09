@@ -5,7 +5,7 @@ import type { ModalProps } from '@/components/modal';
 import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
 
-interface BulkUpdateConfirmModalProps extends ModalProps {
+interface BulkUpdateConfirmModalProps extends ModalProps<boolean> {
   count: number;
   statusLabel: string;
 }

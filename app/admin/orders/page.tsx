@@ -4,7 +4,7 @@ import { useOrders } from '@/lib/client/hooks/useOrders';
 import { OrdersTable } from '@/src/components/admin/orders/OrdersTable';
 
 export default function AdminOrdersPage() {
-  const { data, isLoading, error } = useOrders({ limit: 100 });
+  const { data, isLoading, error } = useOrders({ limit: '100' });
 
   if (error) {
     return (
