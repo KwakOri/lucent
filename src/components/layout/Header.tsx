@@ -59,15 +59,16 @@ export function Header() {
   return (
     <>
       <div
-        className={`sticky top-0 z-50 px-4 sm:px-6 lg:px-8 transition-all duration-300 ${
-          scrolled ? "pt-3" : ""
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled ? "bg-transparent pt-3" : "bg-[#f9f9ed]"
         }`}
       >
-        <nav
-          className={`max-w-6xl mx-auto transition-all duration-300 ${
-            scrolled ? "bg-[#1a1a2e] shadow-lg rounded-2xl" : "bg-transparent"
-          }`}
-        >
+        <div className="px-4 sm:px-6 lg:px-8">
+          <nav
+            className={`max-w-6xl mx-auto transition-all duration-300 ${
+              scrolled ? "bg-[#1a1a2e] shadow-lg rounded-2xl" : "bg-transparent"
+            }`}
+          >
           <div className="px-4 sm:px-6">
             <div className="flex items-center justify-between h-18">
               {/* Mobile Menu Button (Left) */}
@@ -207,14 +208,15 @@ export function Header() {
           </div>
         </div>
       </nav>
-    </div>
+        </div>
+      </div>
 
-    {/* Mobile Menu Sidebar */}
-    <div
-      className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
-        mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
-    >
+      {/* Mobile Menu Sidebar */}
+      <div
+        className={`fixed inset-0 z-[60] md:hidden transition-opacity duration-300 ${
+          mobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+      >
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/50"
