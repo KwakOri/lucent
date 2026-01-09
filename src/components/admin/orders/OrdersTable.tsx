@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -35,18 +35,12 @@ interface OrdersTableProps {
 
 type Tab = 'pending' | 'paid' | 'making' | 'ready_to_ship' | 'shipping' | 'done';
 
-export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
-  const router = useRouter();
-  const [orders, setOrders] = useState(initialOrders);
+export function OrdersTable({ orders }: OrdersTableProps) {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<string>('');
-
-  // props로 받은 orders가 변경되면 state 업데이트 (router.refresh() 후 반영)
-  useEffect(() => {
-    setOrders(initialOrders);
-  }, [initialOrders]);
 
   // 탭 변경 시 선택 목록 및 드롭다운 초기화
   useEffect(() => {
@@ -117,13 +111,13 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       // 선택 해제 및 드롭다운 초기화
       setSelectedOrderIds([]);
       setSelectedStatus('');
-      setIsBulkUpdating(false);
 
-      // 페이지 새로고침하여 최신 상태 반영 (hydration 에러 방지)
-      router.refresh();
+      // React Query 캐시 무효화 (주문 목록 자동 재조회)
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
     } catch (error) {
       console.error('Bulk status change error:', error);
       alert(error instanceof Error ? error.message : '상태 변경 중 오류가 발생했습니다');
+    } finally {
       setIsBulkUpdating(false);
     }
   };

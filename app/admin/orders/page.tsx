@@ -1,8 +1,18 @@
-import { OrderService } from '@/lib/server/services/order.service';
+'use client';
+
+import { useOrders } from '@/lib/client/hooks/useOrders';
 import { OrdersTable } from '@/src/components/admin/orders/OrdersTable';
 
-export default async function AdminOrdersPage() {
-  const { orders } = await OrderService.getAllOrders({ limit: 100 });
+export default function AdminOrdersPage() {
+  const { data, isLoading, error } = useOrders({ limit: 100 });
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">주문 목록을 불러오는데 실패했습니다.</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -15,7 +25,13 @@ export default async function AdminOrdersPage() {
       </div>
 
       {/* Orders Table */}
-      <OrdersTable orders={orders} />
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">로딩 중...</p>
+        </div>
+      ) : (
+        <OrdersTable orders={data?.data || []} />
+      )}
     </div>
   );
 }
