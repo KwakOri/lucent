@@ -4,13 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Download, LogOut, Package, Settings, X } from 'lucide-react';
 import { useSession, useMyOrders, useLogout, useDownloadDigitalProduct, useCancelOrder, type OrderWithItems } from '@/lib/client';
 import { useToast } from '@/src/components/toast';
-import { ORDER_STATUS_CONFIG, ITEM_STATUS_CONFIG } from '@/src/constants';
+import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS, ITEM_STATUS_LABELS, ITEM_STATUS_COLORS } from '@/src/constants';
 import type { Enums } from '@/types';
 
 // Order status types
@@ -168,9 +167,9 @@ export default function MyPage() {
                         })}
                       </p>
                     </div>
-                    <Badge intent={ORDER_STATUS_CONFIG[order.status].intent}>
-                      {ORDER_STATUS_CONFIG[order.status].label}
-                    </Badge>
+                    <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${ORDER_STATUS_COLORS[order.status as keyof typeof ORDER_STATUS_COLORS] || 'bg-gray-100 text-gray-800'}`}>
+                      {ORDER_STATUS_LABELS[order.status as keyof typeof ORDER_STATUS_LABELS] || order.status}
+                    </span>
                   </div>
 
                   {/* Order Items */}
@@ -189,9 +188,9 @@ export default function MyPage() {
                               {item.quantity}개 × {item.price_snapshot.toLocaleString()}원
                             </p>
                             {item.item_status && (
-                              <Badge intent={ITEM_STATUS_CONFIG[item.item_status as OrderItemStatus]?.intent || 'default'} size="sm">
-                                {ITEM_STATUS_CONFIG[item.item_status as OrderItemStatus]?.label || item.item_status}
-                              </Badge>
+                              <span className={`inline-flex rounded-full px-2 text-xs font-semibold leading-5 ${ITEM_STATUS_COLORS[item.item_status as OrderItemStatus] || 'bg-gray-100 text-gray-800'}`}>
+                                {ITEM_STATUS_LABELS[item.item_status as OrderItemStatus] || item.item_status}
+                              </span>
                             )}
                           </div>
                         </div>
