@@ -6,7 +6,31 @@ import { Menu, ShoppingCart, X } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo, memo } from "react";
+
+// Throttle utility
+function throttle<T extends (...args: any[]) => void>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: NodeJS.Timeout | null = null;
+  let lastRan = 0;
+
+  return function (this: any, ...args: Parameters<T>) {
+    const now = Date.now();
+
+    if (now - lastRan >= delay) {
+      func.apply(this, args);
+      lastRan = now;
+    } else {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        func.apply(this, args);
+        lastRan = Date.now();
+      }, delay - (now - lastRan));
+    }
+  };
+}
 
 // Navigation items
 const NAV_ITEMS = [
@@ -16,7 +40,7 @@ const NAV_ITEMS = [
 ] as const;
 
 // Cart Badge Component
-function CartBadge({ count }: { count?: number }) {
+const CartBadge = memo(({ count }: { count?: number }) => {
   if (!count || count <= 0) return null;
 
   return (
@@ -24,7 +48,9 @@ function CartBadge({ count }: { count?: number }) {
       {count > 99 ? "99+" : count}
     </span>
   );
-}
+});
+
+CartBadge.displayName = "CartBadge";
 
 export function Header() {
   const { user, isAdmin, isLoading } = useSession();
@@ -36,11 +62,11 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // Scroll detection
+  // Scroll detection with throttle
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = throttle(() => {
       setScrolled(window.scrollY > 50);
-    };
+    }, 100);
 
     handleScroll();
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -48,7 +74,7 @@ export function Header() {
   }, []);
 
   // Navigation handlers
-  const scrollToSection = (sectionId: string) => {
+  const scrollToSection = useCallback((sectionId: string) => {
     setMobileMenuOpen(false);
     if (pathname !== "/") {
       router.push(`/#${sectionId}`);
@@ -59,27 +85,38 @@ export function Header() {
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
-  };
+  }, [pathname, router]);
 
-  const scrollToTop = () => {
+  const scrollToTop = useCallback(() => {
     setMobileMenuOpen(false);
     if (pathname !== "/") {
       router.push("/");
       return;
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  }, [pathname, router]);
 
-  const handleNavClick = (action: (typeof NAV_ITEMS)[number]["action"]) => {
+  const handleNavClick = useCallback((action: (typeof NAV_ITEMS)[number]["action"]) => {
     if (action === "scrollToTop") {
       scrollToTop();
     } else {
       scrollToSection(action);
     }
-  };
+  }, [scrollToTop, scrollToSection]);
+
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev);
+  }, []);
+
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false);
+  }, []);
 
   // Dynamic button intent
-  const buttonIntent = scrolled ? "headerScrolled" : "header";
+  const buttonIntent = useMemo(
+    () => (scrolled ? "headerScrolled" : "header"),
+    [scrolled]
+  );
 
   return (
     <>
@@ -98,7 +135,7 @@ export function Header() {
               <div className="flex items-center justify-between h-18">
                 {/* Mobile Menu Button (Left) */}
                 <button
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  onClick={toggleMobileMenu}
                   className="md:hidden z-10"
                   aria-label="메뉴 열기"
                 >
@@ -203,7 +240,7 @@ export function Header() {
         {/* Backdrop */}
         <div
           className="absolute inset-0 bg-black/50"
-          onClick={() => setMobileMenuOpen(false)}
+          onClick={closeMobileMenu}
         />
 
         {/* Sidebar */}
@@ -222,7 +259,7 @@ export function Header() {
               className="brightness-0 invert"
             />
             <button
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={closeMobileMenu}
               className="text-white"
               aria-label="메뉴 닫기"
             >
@@ -234,7 +271,7 @@ export function Header() {
           <div className="flex flex-col p-4 space-y-2">
             {isAdmin && (
               <>
-                <Link href="/admin" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/admin" onClick={closeMobileMenu}>
                   <Button
                     intent="headerScrolled"
                     size="sm"
@@ -258,7 +295,7 @@ export function Header() {
               </Button>
             ))}
             <div className="h-px bg-white/10 my-2" />
-            <Link href="/shop" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/shop" onClick={closeMobileMenu}>
               <Button
                 intent="headerScrolled"
                 size="sm"
@@ -267,7 +304,7 @@ export function Header() {
                 굿즈샵
               </Button>
             </Link>
-            <Link href="/cart" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/cart" onClick={closeMobileMenu}>
               <Button
                 intent="headerScrolled"
                 size="sm"
@@ -287,7 +324,7 @@ export function Header() {
               <div className="w-full h-9 bg-white/20 rounded-xl animate-pulse" />
             ) : user ? (
               <>
-                <Link href="/mypage" onClick={() => setMobileMenuOpen(false)}>
+                <Link href="/mypage" onClick={closeMobileMenu}>
                   <Button
                     intent="headerScrolled"
                     size="sm"
@@ -306,7 +343,7 @@ export function Header() {
                 </Button>
               </>
             ) : (
-              <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+              <Link href="/login" onClick={closeMobileMenu}>
                 <Button
                   intent="headerScrolled"
                   size="sm"
