@@ -2,11 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useModal } from '@/components/modal';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/src/constants';
+import {
+  BulkUpdateLoadingModal,
+  BulkUpdateSuccessModal,
+} from './BulkUpdateModal';
 
 interface Order {
   id: string;
@@ -37,6 +42,7 @@ type Tab = 'pending' | 'paid' | 'making' | 'ready_to_ship' | 'shipping' | 'done'
 
 export function OrdersTable({ orders }: OrdersTableProps) {
   const queryClient = useQueryClient();
+  const { openModal, closeModal } = useModal();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
@@ -93,6 +99,18 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
     setIsBulkUpdating(true);
 
+    const count = selectedOrderIds.length;
+    const statusLabel = ORDER_STATUS_LABELS[newStatus as keyof typeof ORDER_STATUS_LABELS];
+    const loadingModalId = crypto.randomUUID();
+
+    // 로딩 모달 열기
+    openModal(BulkUpdateLoadingModal, {
+      id: loadingModalId,
+      count,
+      disableBackdropClick: true,
+      disableEscapeKey: true,
+    });
+
     try {
       const response = await fetch('/api/admin/orders/bulk-update', {
         method: 'PATCH',
@@ -114,8 +132,23 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
       // React Query 캐시 무효화 (주문 목록 자동 재조회)
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
+
+      // 로딩 모달 닫기
+      closeModal(loadingModalId);
+
+      // 완료 모달 열기
+      await openModal(BulkUpdateSuccessModal, {
+        count,
+        statusLabel,
+        disableBackdropClick: true,
+        disableEscapeKey: true,
+      });
     } catch (error) {
       console.error('Bulk status change error:', error);
+
+      // 로딩 모달 닫기
+      closeModal(loadingModalId);
+
       alert(error instanceof Error ? error.message : '상태 변경 중 오류가 발생했습니다');
     } finally {
       setIsBulkUpdating(false);
