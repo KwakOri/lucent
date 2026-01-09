@@ -120,8 +120,8 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
     const loadingModalId = crypto.randomUUID();
 
-    // 2. 로딩 모달 열기
-    openModal(BulkUpdateLoadingModal, {
+    // 2. 로딩 모달 열기 (Promise 저장)
+    const loadingModalPromise = openModal(BulkUpdateLoadingModal, {
       id: loadingModalId,
       count,
       disableBackdropClick: true,
@@ -150,11 +150,18 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       // React Query 캐시 무효화 (주문 목록 자동 재조회)
       await queryClient.invalidateQueries({ queryKey: ['orders'] });
 
-      // 3. 로딩 모달 완전히 닫기
+      // 3. 로딩 모달 닫기 (reject 처리)
       closeModal(loadingModalId);
 
-      // 모달 DOM이 완전히 제거될 때까지 대기 (300ms)
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Promise rejection 처리
+      try {
+        await loadingModalPromise;
+      } catch {
+        // "closed" rejection은 정상 동작이므로 무시
+      }
+
+      // 모달 DOM이 완전히 제거될 때까지 대기
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // 4. 완료 모달 열기
       await openModal(BulkUpdateSuccessModal, {
@@ -168,6 +175,13 @@ export function OrdersTable({ orders }: OrdersTableProps) {
 
       // 로딩 모달 닫기
       closeModal(loadingModalId);
+
+      // Promise rejection 처리
+      try {
+        await loadingModalPromise;
+      } catch {
+        // "closed" rejection은 정상 동작이므로 무시
+      }
 
       // 에러 모달 대신 alert 사용 (간단하게)
       alert(error instanceof Error ? error.message : '상태 변경 중 오류가 발생했습니다');
