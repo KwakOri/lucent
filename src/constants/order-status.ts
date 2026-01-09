@@ -75,6 +75,18 @@ export const ITEM_STATUS_LABELS: Record<OrderItemStatus, string> = {
 };
 
 /**
+ * 주문 아이템 상태 색상 (Tailwind CSS 클래스)
+ */
+export const ITEM_STATUS_COLORS: Record<OrderItemStatus, string> = {
+  PENDING: "bg-yellow-100 text-yellow-800",
+  READY: "bg-gray-100 text-gray-800",
+  PROCESSING: "bg-blue-100 text-blue-800",
+  SHIPPED: "bg-orange-100 text-orange-800",
+  DELIVERED: "bg-green-100 text-green-800",
+  COMPLETED: "bg-green-100 text-green-800",
+};
+
+/**
  * 상품 타입 레이블
  */
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {

@@ -717,7 +717,13 @@ export type Database = {
         | "SHIPPED"
         | "DELIVERED"
         | "COMPLETED"
-      order_status: "PENDING" | "PAID" | "MAKING" | "READY_TO_SHIP" | "SHIPPING" | "DONE"
+      order_status:
+        | "PENDING"
+        | "PAID"
+        | "MAKING"
+        | "READY_TO_SHIP"
+        | "SHIPPING"
+        | "DONE"
       product_type: "VOICE_PACK" | "PHYSICAL_GOODS" | "BUNDLE"
       verification_purpose: "signup" | "reset_password" | "change_email"
     }
@@ -858,7 +864,14 @@ export const Constants = {
         "DELIVERED",
         "COMPLETED",
       ],
-      order_status: ["PENDING", "PAID", "MAKING", "READY_TO_SHIP", "SHIPPING", "DONE"],
+      order_status: [
+        "PENDING",
+        "PAID",
+        "MAKING",
+        "READY_TO_SHIP",
+        "SHIPPING",
+        "DONE",
+      ],
       product_type: ["VOICE_PACK", "PHYSICAL_GOODS", "BUNDLE"],
       verification_purpose: ["signup", "reset_password", "change_email"],
     },

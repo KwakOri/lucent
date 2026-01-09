@@ -1,10 +1,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useModal } from '@/components/modal';
 import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
+import { Select } from '@/components/ui/select';
 import { ORDER_STATUS_LABELS, ORDER_STATUS_COLORS } from '@/src/constants';
+import {
+  BulkUpdateConfirmModal,
+  BulkUpdateSuccessModal,
+} from './BulkUpdateModal';
 
 interface Order {
   id: string;
@@ -33,15 +40,18 @@ interface OrdersTableProps {
 
 type Tab = 'pending' | 'paid' | 'making' | 'ready_to_ship' | 'shipping' | 'done';
 
-export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
-  const [orders, setOrders] = useState(initialOrders);
+export function OrdersTable({ orders }: OrdersTableProps) {
+  const queryClient = useQueryClient();
+  const { openModal, closeModal, renderModal } = useModal();
   const [activeTab, setActiveTab] = useState<Tab>('pending');
   const [selectedOrderIds, setSelectedOrderIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
 
-  // 탭 변경 시 선택 목록 초기화
+  // 탭 변경 시 선택 목록 및 드롭다운 초기화
   useEffect(() => {
     setSelectedOrderIds([]);
+    setSelectedStatus('');
   }, [activeTab]);
 
   // 탭별 필터링 로직 (orders.status 기반)
@@ -83,13 +93,32 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
   };
 
   // 주문 상태 일괄 변경
-  const handleBulkStatusChange = async (newStatus: string, confirmMessage: string) => {
+  const handleBulkStatusChange = async (newStatus: string, _confirmMessage: string) => {
     if (selectedOrderIds.length === 0) return;
-    if (!confirm(confirmMessage)) return;
+
+    const count = selectedOrderIds.length;
+    const statusLabel = ORDER_STATUS_LABELS[newStatus as keyof typeof ORDER_STATUS_LABELS];
+
+    try {
+      // 1. 확인 모달 열기
+      const confirmed = await openModal<boolean>(BulkUpdateConfirmModal, {
+        count,
+        statusLabel,
+        disableBackdropClick: false,
+        disableEscapeKey: false,
+      });
+
+      // 사용자가 취소한 경우
+      if (!confirmed) return;
+    } catch (error) {
+      // 모달이 닫힌 경우 (abort)
+      return;
+    }
 
     setIsBulkUpdating(true);
 
     try {
+      // 2. API 호출
       const response = await fetch('/api/admin/orders/bulk-update', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -104,8 +133,20 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
         throw new Error(error.error || '상태 변경에 실패했습니다');
       }
 
-      // 페이지 새로고침하여 최신 상태 반영
-      window.location.reload();
+      // 선택 해제 및 드롭다운 초기화
+      setSelectedOrderIds([]);
+      setSelectedStatus('');
+
+      // React Query 캐시 무효화 (주문 목록 자동 재조회)
+      await queryClient.invalidateQueries({ queryKey: ['orders'] });
+
+      // 3. 완료 모달 열기
+      await openModal(BulkUpdateSuccessModal, {
+        count,
+        statusLabel,
+        disableBackdropClick: true,
+        disableEscapeKey: true,
+      });
     } catch (error) {
       console.error('Bulk status change error:', error);
       alert(error instanceof Error ? error.message : '상태 변경 중 오류가 발생했습니다');
@@ -113,6 +154,24 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
       setIsBulkUpdating(false);
     }
   };
+
+  // 드롭다운으로 상태 변경
+  const handleDropdownStatusChange = async () => {
+    if (!selectedStatus) return;
+
+    const statusLabel = ORDER_STATUS_LABELS[selectedStatus as keyof typeof ORDER_STATUS_LABELS];
+    await handleBulkStatusChange(
+      selectedStatus,
+      `선택한 ${selectedOrderIds.length}개 주문을 "${statusLabel}" 상태로 변경하시겠습니까?`
+    );
+    setSelectedStatus('');
+  };
+
+  // 드롭다운 옵션 생성 (모든 상태)
+  const statusOptions = Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => ({
+    value,
+    label,
+  }));
 
   return (
     <div>
@@ -285,6 +344,27 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
                   {isBulkUpdating ? '처리 중...' : '완료 처리'}
                 </Button>
               )}
+
+              {/* 드롭다운으로 다른 상태로 변경 */}
+              <div className="flex items-center gap-2 ml-2 pl-2 border-l border-blue-300">
+                <Select
+                  options={statusOptions}
+                  placeholder="다른 상태로 변경"
+                  size="sm"
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  disabled={isBulkUpdating}
+                  className="w-48"
+                />
+                <Button
+                  intent="secondary"
+                  size="sm"
+                  onClick={handleDropdownStatusChange}
+                  disabled={isBulkUpdating || !selectedStatus}
+                >
+                  변경
+                </Button>
+              </div>
             </div>
             <Button
               intent="secondary"
@@ -397,6 +477,8 @@ export function OrdersTable({ orders: initialOrders }: OrdersTableProps) {
           </div>
         </div>
       </div>
+      {/* Render Modals */}
+      {renderModal()}
     </div>
   );
 }
