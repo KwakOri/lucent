@@ -181,10 +181,13 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
 }
 
 body {
   background: #f9f9ed;
   color: #171717;
   min-height: 100vh;
+  /* iOS Safari 모바일 뷰포트 수정 */
+  min-height: -webkit-fill-available;
 }
