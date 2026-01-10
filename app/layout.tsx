@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -6,6 +6,12 @@ export const metadata: Metadata = {
   title: "Lucent Management",
   description:
     "숨겨진 감정과 목소리가 자연스럽게 드러나는 순간을 기록하는 레이블",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
