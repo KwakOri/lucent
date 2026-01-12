@@ -14,13 +14,29 @@ DECLARE
 BEGIN
   SELECT COUNT(*) INTO legacy_count
   FROM order_items
-  WHERE item_status IN ('PROCESSING', 'READY', 'SHIPPED', 'DELIVERED', 'COMPLETED');
+  WHERE item_status::TEXT IN ('PROCESSING', 'READY', 'SHIPPED', 'DELIVERED', 'COMPLETED');
 
   RAISE NOTICE '레거시 상태값을 가진 order_items 개수: %', legacy_count;
 END $$;
 
 -- =====================================================
--- 1단계: 레거시 상태값을 새 상태값으로 변환
+-- 1단계: item_status를 TEXT 타입으로 임시 변환
+-- =====================================================
+
+DO $$
+BEGIN
+  RAISE NOTICE 'item_status를 TEXT 타입으로 임시 변환 중...';
+
+  -- order_item_status → TEXT
+  ALTER TABLE order_items
+    ALTER COLUMN item_status TYPE TEXT
+    USING item_status::TEXT;
+
+  RAISE NOTICE 'item_status 타입 변경 완료: order_item_status → TEXT';
+END $$;
+
+-- =====================================================
+-- 2단계: 레거시 상태값을 새 상태값으로 변환 (TEXT 타입이므로 제약 없음)
 -- =====================================================
 
 DO $$
@@ -56,24 +72,23 @@ BEGIN
 END $$;
 
 -- =====================================================
--- 2단계: item_status 컬럼 타입 변경 (order_item_status → order_status)
+-- 3단계: item_status를 order_status 타입으로 변환
 -- =====================================================
 
 DO $$
 BEGIN
-  RAISE NOTICE 'item_status 컬럼 타입 변경 시작...';
+  RAISE NOTICE 'item_status를 order_status 타입으로 변환 중...';
 
-  -- 컬럼 타입을 order_status로 변경
-  -- USING 절로 명시적 타입 변환 (text를 거쳐서 변환)
+  -- TEXT → order_status
   ALTER TABLE order_items
     ALTER COLUMN item_status TYPE order_status
-    USING item_status::text::order_status;
+    USING item_status::order_status;
 
-  RAISE NOTICE 'item_status 컬럼 타입 변경 완료: order_item_status → order_status';
+  RAISE NOTICE 'item_status 타입 변경 완료: TEXT → order_status';
 END $$;
 
 -- =====================================================
--- 3단계: order_item_status ENUM 타입 삭제
+-- 4단계: order_item_status ENUM 타입 삭제
 -- =====================================================
 
 DO $$
@@ -98,7 +113,7 @@ BEGIN
 END $$;
 
 -- =====================================================
--- 4단계: 마이그레이션 후 검증
+-- 5단계: 마이그레이션 후 검증
 -- =====================================================
 
 DO $$
@@ -125,7 +140,7 @@ BEGIN
 END $$;
 
 -- =====================================================
--- 5단계: 인덱스 재생성 (선택사항)
+-- 6단계: 인덱스 재생성 (선택사항)
 -- =====================================================
 
 -- 기존 인덱스가 자동으로 재생성되지만, 명시적으로 확인
@@ -148,7 +163,7 @@ BEGIN
 END $$;
 
 -- =====================================================
--- 6단계: 마이그레이션 결과 요약
+-- 7단계: 마이그레이션 결과 요약
 -- =====================================================
 
 DO $$

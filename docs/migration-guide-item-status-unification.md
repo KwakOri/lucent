@@ -45,19 +45,20 @@
 ```
 
 **수행 작업**:
-1. 레거시 상태값 변환:
+1. `item_status`를 TEXT 타입으로 임시 변환 (ENUM 제약 해제)
+
+2. 레거시 상태값 변환 (TEXT 타입이므로 제약 없음):
    - `PROCESSING` → `MAKING`
    - `READY` → `PAID`
    - `SHIPPED` → `SHIPPING`
    - `DELIVERED` → `SHIPPING`
    - `COMPLETED` → `DONE`
 
-2. `item_status` 컬럼 타입 변경:
-   - `order_item_status` → `order_status`
+3. `item_status`를 `order_status` 타입으로 변환
 
-3. `order_item_status` ENUM 타입 삭제
+4. `order_item_status` ENUM 타입 삭제
 
-4. 검증 및 인덱스 재생성
+5. 검증 및 인덱스 재생성
 
 **예상 소요 시간**: 레코드 수에 따라 다름 (1000건 기준 < 1초)
 
@@ -272,24 +273,16 @@ ALTER TABLE order_items
 
 ## 예상 문제 및 해결
 
-### 문제 1: "타입 변환 실패"
+### 문제 1: "타입 변환 실패" (해결됨)
 
-**증상**:
+**이전 증상**:
 ```
-ERROR: cannot cast type order_item_status to order_status
+ERROR: invalid input value for enum order_item_status: "MAKING"
 ```
 
-**원인**: 레거시 값이 남아있음
-
-**해결**:
-```sql
--- 1단계 다시 실행
-UPDATE order_items
-SET item_status = CASE
-  WHEN item_status = 'PROCESSING' THEN 'MAKING'
-  -- ...
-END;
-```
+**해결 방법**: TEXT 타입을 중간에 거쳐서 변환 (현재 스크립트에 적용됨)
+- `order_item_status` → `TEXT` → 값 변환 → `order_status`
+- TEXT 타입에서는 ENUM 제약이 없어서 자유롭게 값 변환 가능
 
 ### 문제 2: "다른 테이블이 order_item_status 사용 중"
 
