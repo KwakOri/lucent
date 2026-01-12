@@ -54,7 +54,10 @@
    - `DELIVERED` → `SHIPPING`
    - `COMPLETED` → `DONE`
 
-3. `item_status`를 `order_status` 타입으로 변환
+3. `item_status`를 `order_status` 타입으로 변환:
+   - DEFAULT 제거
+   - 타입 변환
+   - DEFAULT 재설정 (`PENDING`::order_status)
 
 4. `order_item_status` ENUM 타입 삭제
 
@@ -273,7 +276,7 @@ ALTER TABLE order_items
 
 ## 예상 문제 및 해결
 
-### 문제 1: "타입 변환 실패" (해결됨)
+### 문제 1: "ENUM 타입 변환 실패" (해결됨)
 
 **이전 증상**:
 ```
@@ -284,7 +287,21 @@ ERROR: invalid input value for enum order_item_status: "MAKING"
 - `order_item_status` → `TEXT` → 값 변환 → `order_status`
 - TEXT 타입에서는 ENUM 제약이 없어서 자유롭게 값 변환 가능
 
-### 문제 2: "다른 테이블이 order_item_status 사용 중"
+### 문제 2: "DEFAULT 값 캐스팅 실패" (해결됨)
+
+**이전 증상**:
+```
+ERROR: default for column "item_status" cannot be cast automatically to type order_status
+```
+
+**해결 방법**: DEFAULT 제거 → 타입 변환 → DEFAULT 재설정 (현재 스크립트에 적용됨)
+```sql
+ALTER TABLE order_items ALTER COLUMN item_status DROP DEFAULT;
+ALTER TABLE order_items ALTER COLUMN item_status TYPE order_status ...;
+ALTER TABLE order_items ALTER COLUMN item_status SET DEFAULT 'PENDING'::order_status;
+```
+
+### 문제 3: "다른 테이블이 order_item_status 사용 중"
 
 **증상**:
 ```
@@ -305,7 +322,7 @@ WHERE udt_name = 'order_item_status';
 -- 해당 컬럼도 함께 마이그레이션 필요
 ```
 
-### 문제 3: "프론트엔드에서 타입 에러"
+### 문제 4: "프론트엔드에서 타입 에러"
 
 **증상**: TypeScript 컴파일 에러
 

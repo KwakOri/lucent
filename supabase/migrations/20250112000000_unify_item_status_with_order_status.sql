@@ -79,12 +79,24 @@ DO $$
 BEGIN
   RAISE NOTICE 'item_status를 order_status 타입으로 변환 중...';
 
+  -- DEFAULT 제거 (타입 변경 전)
+  ALTER TABLE order_items
+    ALTER COLUMN item_status DROP DEFAULT;
+
+  RAISE NOTICE 'DEFAULT 제거 완료';
+
   -- TEXT → order_status
   ALTER TABLE order_items
     ALTER COLUMN item_status TYPE order_status
     USING item_status::order_status;
 
   RAISE NOTICE 'item_status 타입 변경 완료: TEXT → order_status';
+
+  -- DEFAULT 다시 설정 (order_status 타입으로)
+  ALTER TABLE order_items
+    ALTER COLUMN item_status SET DEFAULT 'PENDING'::order_status;
+
+  RAISE NOTICE 'DEFAULT 재설정 완료: PENDING';
 END $$;
 
 -- =====================================================
